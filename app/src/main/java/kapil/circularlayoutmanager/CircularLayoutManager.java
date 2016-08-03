@@ -505,7 +505,7 @@ public class CircularLayoutManager extends RecyclerView.LayoutManager {
             layoutDecorated(view, getCoordinate(newPoint, "left"),
                     getCoordinate(newPoint, "top"),
                     getCoordinate(newPoint, "right"),
-                    getCoordinate(newPoint, "bottom"));
+                    getCoordinate(newPoint, "bottomLine"));
         }
     }
 }
