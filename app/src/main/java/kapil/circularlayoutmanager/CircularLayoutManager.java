@@ -1,61 +1,45 @@
 package kapil.circularlayoutmanager;
 
-import android.app.Activity;
-import android.graphics.Point;
+import android.content.Context;
 import android.graphics.Rect;
 import android.support.v7.widget.RecyclerView;
-import android.view.Display;
+import android.util.TypedValue;
 import android.view.View;
 
-import java.util.ArrayList;
-import java.util.HashMap;
 import java.util.List;
 
+/**
+ * This is a custom layout manager for recycler view which displays list items in a circular or
+ * elliptical fashion.
+ */
+
 public class CircularLayoutManager extends RecyclerView.LayoutManager {
+    private RecyclerView recyclerView;
+    private Rect recyclerBounds;
 
-    Activity activity;
-    RecyclerView recyclerView;
-    long xCenter, yCenter, radius, a, b;
-    boolean isCircle, pointsGenerated;
+    private int topOfFirstChild;
 
-    HashMap<Integer, Point> mapWithKey_Index;
-    HashMap<Point, Integer> mapWithKey_Point;
-    int lastIndexInMap;
-    List<Point> childPoints;
-    Rect recyclerBounds;
-    int heightOfView, widthOfView;
-    RecyclerView.Recycler mRecycler;
-    RecyclerView.State mState;
-    int screenWidth;
-    float baseScale;
+    private Rect childDecoratedBoundsWithMargin;
+    private int verticalCenter;
+    private boolean scrolled;
 
-    public CircularLayoutManager(Activity activity, RecyclerView recyclerView, long xCenter, long yCenter, long radius) {
-        this.activity = activity;
-        this.recyclerView = recyclerView;
-        this.xCenter = xCenter;
-        this.yCenter = yCenter;
-        this.radius = radius;
+    private float radius;
+    private float a, b;
+    private float centerX;
 
-        childPoints = new ArrayList<>();
-
-        isCircle = true;
-
-        pointsGenerated = false;
+    public CircularLayoutManager(Context context, int radius, int centerX) {
+        this.radius = DpToPx(context, radius);
+        this.centerX = DpToPx(context, centerX);
     }
 
-    public CircularLayoutManager(Activity activity, RecyclerView recyclerView, long xCenter, long yCenter, long a, long b) {
-        this.activity = activity;
-        this.recyclerView = recyclerView;
-        this.xCenter = xCenter;
-        this.yCenter = yCenter;
-        this.a = a;
-        this.b = b;
+    public CircularLayoutManager(Context context, int a, int b, int centerX) {
+        this.a = DpToPx(context, a);
+        this.b = DpToPx(context, b);
+        this.centerX = DpToPx(context, centerX);
+    }
 
-        childPoints = new ArrayList<>();
-
-        isCircle = false;
-
-        pointsGenerated = false;
+    private float DpToPx(Context context, float dp) {
+        return TypedValue.applyDimension(TypedValue.COMPLEX_UNIT_DIP, dp, context.getResources().getDisplayMetrics());
     }
 
     @Override
@@ -64,367 +48,149 @@ public class CircularLayoutManager extends RecyclerView.LayoutManager {
     }
 
     @Override
-    public boolean canScrollVertically() {
-        return true;
-    }
+    public void onAttachedToWindow(RecyclerView view) {
+        super.onAttachedToWindow(view);
 
-    private void setRange(RecyclerView.Recycler recycler) {
-        View view = recycler.getViewForPosition(0);
-        measureChildWithMargins(view, 0, 0);
-        heightOfView = getDecoratedMeasuredHeight(view);
-        widthOfView = getDecoratedMeasuredWidth(view);
+        recyclerView = view;
 
-        int top = 0 - (2 * heightOfView);
-        int bottom = recyclerView.getHeight() + (2 * heightOfView);
-        int left = 0 - (2 * widthOfView);
-        int right = recyclerView.getWidth() + (2 * widthOfView);
+        topOfFirstChild = 0;
 
-        recyclerBounds = new Rect(left, top, right, bottom);
-    }
+        childDecoratedBoundsWithMargin = new Rect();
 
-    private void generateCirclePoints() {
-
-        List<Point> circlePoints = new ArrayList<>();
-        mapWithKey_Index = new HashMap<>();
-        mapWithKey_Point = new HashMap<>();
-        int index = 0;
-
-        long x = radius;
-        long y = 0;
-        int err = 0;
-
-        while (x >= y) {
-            Point point = new Point((int) (xCenter + x), (int) (yCenter + y));
-            circlePoints.add(point);
-
-            if (recyclerBounds.contains(point.x, point.y)) {
-                mapWithKey_Index.put(index, point);
-                mapWithKey_Point.put(point, index);
-                index++;
-            }
-
-            y += 1;
-            err += 1 + 2 * y;
-            if (2 * (err - x) + 1 > 0) {
-                x -= 1;
-                err += 1 - 2 * x;
-            }
-        }
-
-        for (int i = (circlePoints.size() - 1); i >= 0; i--) {
-
-            Point newPoint = new Point(circlePoints.get(i).y - (int) yCenter + (int) xCenter, circlePoints.get(i).x - (int) xCenter + (int) yCenter);
-            circlePoints.add(newPoint);
-
-            if ((recyclerBounds.contains(newPoint.x, newPoint.y)) && (!mapWithKey_Point.containsKey(newPoint))) {
-                mapWithKey_Index.put(index, newPoint);
-                mapWithKey_Point.put(newPoint, index);
-                index++;
-            }
-        }
-
-        for (int i = (circlePoints.size() - 1); i >= 0; i--) {
-
-            Point newPoint = new Point((2 * (int) xCenter) - circlePoints.get(i).x, circlePoints.get(i).y);
-            circlePoints.add(newPoint);
-
-            if ((recyclerBounds.contains(newPoint.x, newPoint.y)) && (!mapWithKey_Point.containsKey(newPoint))) {
-                mapWithKey_Index.put(index, newPoint);
-                mapWithKey_Point.put(newPoint, index);
-                index++;
-            }
-        }
-
-        for (int i = (circlePoints.size() - 1); i >= 0; i--) {
-            Point newPoint = new Point(circlePoints.get(i).x, (2 * (int) yCenter) - circlePoints.get(i).y);
-
-            if ((recyclerBounds.contains(newPoint.x, newPoint.y)) && (!mapWithKey_Point.containsKey(newPoint))) {
-                mapWithKey_Index.put(index, newPoint);
-                mapWithKey_Point.put(newPoint, index);
-                index++;
-            }
-        }
-
-        lastIndexInMap = index - 1;
-        pointsGenerated = true;
-    }
-
-    void generateEllipsePoints() {
-
-        List<Point> ellipsePoints = new ArrayList<>();
-        mapWithKey_Index = new HashMap<>();
-        mapWithKey_Point = new HashMap<>();
-        int index = 0;
-
-        long xrad2, yrad2, twoxrad2, twoyrad2;
-        long x, y, dp, dpx, dpy;
-
-        xrad2 = a * a;
-        yrad2 = b * b;
-
-        twoxrad2 = 2 * xrad2;
-        twoyrad2 = 2 * yrad2;
-        y = dpy = 0;
-        x = a;
-        dpx = twoyrad2 * x;
-
-        Point mPoint = new Point((int) (xCenter + x), (int) (yCenter + y));
-        ellipsePoints.add(mPoint);
-
-        if (recyclerBounds.contains(mPoint.x, mPoint.y)) {
-            mapWithKey_Index.put(index, mPoint);
-            mapWithKey_Point.put(mPoint, index);
-            index++;
-        }
-
-        dp = (long) (0.5 + xrad2 - (yrad2 * a) + (0.25 * yrad2));
-
-        while (dpy < dpx) {
-            y = y + 1;
-            dpy = dpy + twoxrad2;
-            if (dp < 0) {
-                dp = dp + xrad2 + dpy;
-            } else {
-                x = x - 1;
-                dpx = dpx - twoyrad2;
-                dp = dp + xrad2 + dpy - dpx;
-            }
-
-            Point point = new Point((int) (xCenter + x), (int) (yCenter + y));
-            ellipsePoints.add(point);
-
-            if (recyclerBounds.contains(point.x, point.y)) {
-                mapWithKey_Index.put(index, point);
-                mapWithKey_Point.put(point, index);
-                index++;
-            }
-        }
-
-        dp = (long) (0.5 + xrad2 * (y + 0.5) * (y + 0.5) +
-                yrad2 * (x - 1) * (x - 1) - yrad2 * xrad2);
-
-        while (x > 0) {
-            x = x - 1;
-            dpx = dpx - twoyrad2;
-
-            if (dp > 0) {
-                dp = dp + yrad2 - dpx;
-            } else {
-                y = y + 1;
-                dpy = dpy + twoxrad2;
-                dp = dp + yrad2 - dpx + dpy;
-            }
-
-            Point point = new Point((int) (xCenter + x), (int) (yCenter + y));
-            ellipsePoints.add(point);
-
-            if (recyclerBounds.contains(point.x, point.y)) {
-                mapWithKey_Index.put(index, point);
-                mapWithKey_Point.put(point, index);
-                index++;
-            }
-        }
-
-        for (int i = (ellipsePoints.size() - 1); i >= 0; i--) {
-
-            Point newPoint = new Point((2 * (int) xCenter) - ellipsePoints.get(i).x, ellipsePoints.get(i).y);
-            ellipsePoints.add(newPoint);
-
-            if ((recyclerBounds.contains(newPoint.x, newPoint.y)) && (!mapWithKey_Point.containsKey(newPoint))) {
-                mapWithKey_Index.put(index, newPoint);
-                mapWithKey_Point.put(newPoint, index);
-                index++;
-            }
-        }
-
-        for (int i = (ellipsePoints.size() - 1); i >= 0; i--) {
-            Point newPoint = new Point(ellipsePoints.get(i).x, (2 * (int) yCenter) - ellipsePoints.get(i).y);
-
-            if ((recyclerBounds.contains(newPoint.x, newPoint.y)) && (!mapWithKey_Point.containsKey(newPoint))) {
-                mapWithKey_Index.put(index, newPoint);
-                mapWithKey_Point.put(newPoint, index);
-                index++;
-            }
-        }
-
-        lastIndexInMap = index - 1;
-        pointsGenerated = true;
-    }
-
-    private void measureScreen() {
-        Display display = activity.getWindowManager().getDefaultDisplay();
-        Point size = new Point();
-        display.getSize(size);
-        screenWidth = size.x;
-
-        baseScale = (float) screenWidth*(1f/720f);
+        scrolled = false;
     }
 
     @Override
     public void onLayoutChildren(RecyclerView.Recycler recycler, RecyclerView.State state) {
-
-        if (!pointsGenerated) {
-            measureScreen();
-
-            mRecycler = recycler;
-            mState = state;
-
-            setRange(recycler);
-
-            if (isCircle) {
-                generateCirclePoints();
-            } else {
-                generateEllipsePoints();
-            }
-        }
-
         if (getItemCount() == 0) {
             detachAndScrapAttachedViews(recycler);
             return;
         }
 
+        if (recyclerBounds == null) {
+            recyclerBounds = new Rect();
+            recyclerView.getHitRect(recyclerBounds);
+            verticalCenter = (recyclerBounds.height() / 2);
+        }
+
         if (getChildCount() == 0) {
-            detachAndScrapAttachedViews(recycler);
-            childPoints.clear();
-            fill(0, "DOWN", recycler, state);
-        } else {
-            if (childPoints.get(childPoints.size() - 1).y < (recyclerBounds.bottom - (2 * heightOfView))) {
-                fill(getPosition(getChildAt(getChildCount() - 1)) + 1, "DOWN", recycler, state);
-            }
+            fill(0, recycler);
         }
     }
 
-    private void fill(int positionToStartFill, String directionOfFill, RecyclerView.Recycler recycler, RecyclerView.State state) {
-
-        int startingIndex = 0;
-        int startPosition = positionToStartFill;
-
-        switch (directionOfFill) {
-            case "DOWN":
-                if ((positionToStartFill < getItemCount()) && (positionToStartFill >= 0)) {
-                    if (childPoints.isEmpty()) {
-                        startingIndex = 0;
-                        startPosition = 0;
-                    } else {
-                        startingIndex = mapWithKey_Point.get(childPoints.get(0));
-                        startPosition = getPosition(getChildAt(0));
-                    }
-                    childPoints.clear();
-                    detachAndScrapAttachedViews(recycler);
-                }
-                break;
-
-            case "UP":
-
-                for (int i = positionToStartFill; ((i < getItemCount()) && (i >= 0)); i--) {
-
-                    int index = mapWithKey_Point.get(childPoints.get(0)) - heightOfView;
-
-                    if (index > lastIndexInMap) {
-                        index -= lastIndexInMap;
-                    } else if (index < 0) {
-                        index += lastIndexInMap;
-                    }
-
-                    Point point = mapWithKey_Index.get(index);
-                    childPoints.add(0, point);
-
-                    if (point.y < (recyclerBounds.top + (2 * heightOfView))) {
-                        startPosition = i;
-                        break;
-                    }
-                }
-
-                if ((positionToStartFill < getItemCount()) && (positionToStartFill >= 0)) {
-                    startingIndex = mapWithKey_Point.get(childPoints.get(0));
-                    childPoints.clear();
-                    detachAndScrapAttachedViews(recycler);
-                }
-                break;
+    private void fill(int indexToStartFill, RecyclerView.Recycler recycler) {
+        if (indexToStartFill < 0) {
+            indexToStartFill = 0;
         }
 
-        for (int i = startPosition; ((i < getItemCount()) && (i >= 0)); i++) {
-            View view = recycler.getViewForPosition(i);
+        int childTop = topOfFirstChild;
 
-            measureChildWithMargins(view, 0, 0);
+        detachAndScrapAttachedViews(recycler);
 
-            int index;
-            if (childPoints.isEmpty()) {
-                index = startingIndex;
+        for (int i = indexToStartFill; i < getItemCount(); i++) {
+            View child = recycler.getViewForPosition(i);
+
+            measureChildWithMargins(child, 0, 0);
+
+            int sumOfHorizontalMargins = ((RecyclerView.LayoutParams) child.getLayoutParams()).leftMargin
+                    + ((RecyclerView.LayoutParams) child.getLayoutParams()).rightMargin;
+            int sumOfVerticalMargins = ((RecyclerView.LayoutParams) child.getLayoutParams()).topMargin
+                    + ((RecyclerView.LayoutParams) child.getLayoutParams()).bottomMargin;
+
+            int childLeft;
+            if (radius == 0) {
+                childLeft = calculateEllipseXFromY((childTop + (childTop + getDecoratedMeasuredHeight(child) + sumOfVerticalMargins)) / 2);
             } else {
-                index = mapWithKey_Point.get(childPoints.get(childPoints.size() - 1)) + heightOfView;
-            }
-            if (index > lastIndexInMap) {
-                index -= lastIndexInMap;
-            } else if (index < 0) {
-                index += lastIndexInMap;
+                childLeft = calculateCircleXFromY((childTop + (childTop + getDecoratedMeasuredHeight(child) + sumOfVerticalMargins)) / 2);
             }
 
-            Point point = mapWithKey_Index.get(index);
-
-            addView(view);
-            childPoints.add(point);
-
-            view.setScaleX(baseScale);
-            view.setScaleY(baseScale);
-
-            float scale = 1.5f*Math.abs((float) (mapWithKey_Index.get(0).y - point.y)) / ((float) (recyclerBounds.height() - (2 * heightOfView)));
-            view.setScaleX(baseScale/(1+(scale)));
-            view.setScaleY(baseScale/(1+(scale)));
-
-            layoutDecorated(view, getCoordinate(point, "left"),
-                    getCoordinate(point, "top"),
-                    getCoordinate(point, "right"),
-                    getCoordinate(point, "bottom"));
-
-            if (point.y > (recyclerBounds.bottom - (2 * heightOfView))) {
+            if (!(recyclerBounds.intersects(recyclerBounds.left + childLeft, recyclerBounds.top + childTop,
+                    recyclerBounds.left + childLeft + getDecoratedMeasuredWidth(child) + sumOfHorizontalMargins,
+                    recyclerBounds.top + childTop + getDecoratedMeasuredHeight(child) + sumOfVerticalMargins)
+                    || recyclerBounds.contains(recyclerBounds.left + childLeft, recyclerBounds.top + childTop,
+                    recyclerBounds.left + childLeft + getDecoratedMeasuredWidth(child) + sumOfHorizontalMargins,
+                    recyclerBounds.top + childTop + getDecoratedMeasuredHeight(child) + sumOfVerticalMargins))) {
                 break;
             }
+
+            addView(child);
+
+            layoutDecoratedWithMargins(child, childLeft, childTop, childLeft + getDecoratedMeasuredWidth(child)
+                            + sumOfHorizontalMargins, childTop + getDecoratedMeasuredHeight(child) + sumOfVerticalMargins);
+
+            getDecoratedBoundsWithMargins(child, childDecoratedBoundsWithMargin);
+
+            scaleChild(child);
+
+            childTop += childDecoratedBoundsWithMargin.height();
         }
+
         List<RecyclerView.ViewHolder> scrapList = recycler.getScrapList();
         for (int i = 0; i < scrapList.size(); i++) {
             View viewRemoved = scrapList.get(i).itemView;
             recycler.recycleView(viewRemoved);
         }
+
+        if (!scrolled) {
+            stabilize();
+        }
     }
 
-    private int getCoordinate(Point point, String desiredCoordinate) {
-        switch (desiredCoordinate) {
-            case "top":
-                return point.y - (heightOfView / 2);
+    private void scaleChild(View child) {
+        int y = (child.getTop() + child.getBottom()) / 2;
+        float scale = 1 - (Math.abs(verticalCenter - y) / (float) recyclerBounds.height());
 
-            case "bottom":
-                return point.y + (heightOfView / 2);
+        child.setPivotX(0);
 
-            case "left":
-                return point.x - (widthOfView / 2);
+        child.setScaleX(scale);
+        child.setScaleY(scale);
+    }
 
-            case "right":
-                return point.x + (widthOfView / 2);
+    private int calculateCircleXFromY(int y) {
+        int centerY = verticalCenter;
+
+        return (int) (Math.sqrt((radius * radius) - ((y - centerY) * (y - centerY))) + centerX);
+    }
+
+    private int calculateEllipseXFromY(int y) {
+        int centerY = verticalCenter;
+
+        return (int) (Math.sqrt((1 - (((y - centerY) * (y - centerY)) / (b * b))) * (a * a)) + centerX);
+    }
+
+    public void stabilize() {
+        int minDistance = Integer.MAX_VALUE;
+        for (int i = 0; i < getChildCount(); i++) {
+            View child = getChildAt(i);
+            int y = (child.getTop() + child.getBottom()) / 2;
+            if (Math.abs(y - verticalCenter) < Math.abs(minDistance)) {
+                minDistance = y - verticalCenter;
+            } else {
+                break;
+            }
         }
-        return 0;
+        recyclerView.smoothScrollBy(0, minDistance);
+    }
+
+    @Override
+    public boolean canScrollVertically() {
+        return true;
     }
 
     @Override
     public void onScrollStateChanged(int state) {
         if (state == RecyclerView.SCROLL_STATE_IDLE) {
-            int minimumDistanceFromCenter = 10000;
-            Point nearestPoint = childPoints.get(0);
-            for (int i = 0; i < childPoints.size(); i++) {
-                if (Math.abs(childPoints.get(i).y - mapWithKey_Index.get(0).y) < minimumDistanceFromCenter) {
-                    minimumDistanceFromCenter = Math.abs(childPoints.get(i).y - mapWithKey_Index.get(0).y);
-                    nearestPoint = childPoints.get(i);
-                }
-            }
-            final int delta = (nearestPoint.y - mapWithKey_Index.get(0).y);
-            recyclerView.smoothScrollBy(0, delta);
+            stabilize();
         }
     }
 
     @Override
     public int scrollVerticallyBy(int dy, RecyclerView.Recycler recycler, RecyclerView.State state) {
+        if (!scrolled) {
+            scrolled = true;
+        }
 
-        int delta = dy, stopScrollFlag = 0;
+        int delta = dy;
 
         if (delta > 150) {
             delta = 150;
@@ -434,77 +200,63 @@ public class CircularLayoutManager extends RecyclerView.LayoutManager {
             delta = -150;
         }
 
-        if (delta < (childPoints.get(0).y - mapWithKey_Index.get(0).y)) {
-            delta = childPoints.get(0).y - mapWithKey_Index.get(0).y;
-            stopScrollFlag = 1;
-        }
-        if (delta > (childPoints.get(childPoints.size() - 1).y - mapWithKey_Index.get(0).y)) {
-            delta = (childPoints.get(childPoints.size() - 1).y - mapWithKey_Index.get(0).y);
-            stopScrollFlag = 1;
+        if (getChildCount() == 0) {
+            return dy;
         }
 
-        offsetChildren(delta);
+        if (getPosition(getChildAt(getChildCount() - 1)) == getItemCount() - 1) {
 
-        if (childPoints.get(0).y > (recyclerBounds.top + (2 * heightOfView))) {
-            fill(getPosition(getChildAt(0)) - 1, "UP", recycler, state);
-        }
+            View child = getChildAt(getChildCount() - 1);
+            getDecoratedBoundsWithMargins(child, childDecoratedBoundsWithMargin);
 
-        if (childPoints.get(childPoints.size() - 1).y < (recyclerBounds.bottom - (2 * heightOfView))) {
-            fill(getPosition(getChildAt(getChildCount() - 1)) + 1, "DOWN", recycler, state);
-        }
+            if (childDecoratedBoundsWithMargin.bottom - delta < recyclerBounds.height()) {
+                int position = recyclerBounds.height();
+                int indexToStartFill = getPosition(getChildAt(0));
 
-        if (childPoints.get(0).y < (recyclerBounds.top + heightOfView)) {
-            detachAndScrapView(getChildAt(0), recycler);
-            childPoints.remove(0);
-        }
+                for (int i = getChildCount() - 1; i >= 0; i--) {
+                    getDecoratedBoundsWithMargins(getChildAt(i), childDecoratedBoundsWithMargin);
 
-        if (childPoints.get(childPoints.size() - 1).y > (recyclerBounds.bottom - heightOfView)) {
-            detachAndScrapView(getChildAt(getChildCount() - 1), recycler);
-            childPoints.remove(childPoints.size() - 1);
-        }
+                    position -= childDecoratedBoundsWithMargin.height();
 
-        List<RecyclerView.ViewHolder> scrapList = recycler.getScrapList();
-        for (int i = 0; i < scrapList.size(); i++) {
-            View viewRemoved = scrapList.get(i).itemView;
-            recycler.recycleView(viewRemoved);
-        }
+                    if (position <= 0) {
+                        topOfFirstChild = position;
+                        if (topOfFirstChild <= -childDecoratedBoundsWithMargin.height()) {
+                            topOfFirstChild += childDecoratedBoundsWithMargin.height();
+                        }
+                        indexToStartFill = getPosition(getChildAt(i));
+                        if (indexToStartFill >= getItemCount()) {
+                            indexToStartFill = getItemCount() - 1;
+                        }
+                        break;
+                    }
+                }
 
-        if (stopScrollFlag == 1) {
-            return 0;
-        }
-        return delta;
-    }
-
-    private void offsetChildren(int delta) {
-        for (int i = 0; i < getChildCount(); i++) {
-            View view = getChildAt(i);
-
-            measureChildWithMargins(view, 0, 0);
-
-            Point point = childPoints.get(i);
-
-            int index = mapWithKey_Point.get(point) - delta;
-
-            if (index > lastIndexInMap) {
-                index -= lastIndexInMap;
-            } else if (index < 0) {
-                index += lastIndexInMap;
+                fill(indexToStartFill, recycler);
+                return 0;
             }
-
-            Point newPoint = mapWithKey_Index.get(index);
-            childPoints.set(i, newPoint);
-
-            view.setScaleX(baseScale);
-            view.setScaleY(baseScale);
-
-            float scale = 1.5f*Math.abs((float) (mapWithKey_Index.get(0).y - newPoint.y)) / ((float) (recyclerBounds.height() - (2 * heightOfView)));
-            view.setScaleX(baseScale/(1+(scale)));
-            view.setScaleY(baseScale/(1+(scale)));
-
-            layoutDecorated(view, getCoordinate(newPoint, "left"),
-                    getCoordinate(newPoint, "top"),
-                    getCoordinate(newPoint, "right"),
-                    getCoordinate(newPoint, "bottom"));
         }
+
+        topOfFirstChild -= delta;
+
+        getDecoratedBoundsWithMargins(getChildAt(0), childDecoratedBoundsWithMargin);
+
+        int indexToStartFill = getPosition(getChildAt(0));
+
+        if (topOfFirstChild > 0) {
+            topOfFirstChild -= childDecoratedBoundsWithMargin.height();
+            indexToStartFill--;
+            if (indexToStartFill == -1) {
+                topOfFirstChild = 0;
+                fill(0, recycler);
+                return 0;
+            }
+        } else if (topOfFirstChild <= -childDecoratedBoundsWithMargin.height()) {
+            topOfFirstChild += childDecoratedBoundsWithMargin.height();
+            indexToStartFill++;
+        }
+
+        fill(indexToStartFill, recycler);
+
+        return dy;
     }
 }
