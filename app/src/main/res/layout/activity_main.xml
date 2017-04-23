@@ -28,8 +28,12 @@
 
         <android.support.v7.widget.RecyclerView
             android:id="@+id/list_container"
-            android:layout_width="wrap_content"
-            android:layout_height="wrap_content"
+            android:layout_width="match_parent"
+            android:layout_height="match_parent"
+            android:layout_marginLeft="70dp"
+            android:layout_marginTop="100dp"
+            android:layout_marginRight="70dp"
+            android:layout_marginBottom="100dp"
             android:layout_centerInParent="true" />
 
         <ImageView
@@ -38,7 +42,8 @@
             android:layout_height="match_parent"
             android:layout_centerInParent="true"
             android:src="@drawable/empty_circle"
-            android:scaleType="fitCenter"/>
+            android:scaleType="fitCenter"
+            android:visibility="gone"/>
 
         <android.support.design.widget.FloatingActionButton
             android:id="@+id/fab"
