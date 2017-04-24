@@ -15,6 +15,8 @@ import android.widget.RelativeLayout;
 import android.widget.TextView;
 import android.widget.Toast;
 
+import com.kapil.circularlayoutmanager.CircularLayoutManager;
+
 import java.util.ArrayList;
 import java.util.List;
 
