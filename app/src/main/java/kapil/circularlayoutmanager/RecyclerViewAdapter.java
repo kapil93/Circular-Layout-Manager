@@ -9,12 +9,16 @@ import android.widget.TextView;
 
 import java.util.List;
 
-public class RecyclerViewAdapter extends RecyclerView.Adapter<RecyclerViewAdapter.MyViewHolder> {
+/**
+ * Adapter for recycler view.
+ */
 
-    Context context;
-    List<Model> list;
+class RecyclerViewAdapter extends RecyclerView.Adapter<RecyclerViewAdapter.MyViewHolder> {
 
-    public RecyclerViewAdapter(Context context, List<Model> list) {
+    private Context context;
+    private List<Model> list;
+
+    RecyclerViewAdapter(Context context, List<Model> list) {
         this.context = context;
         this.list = list;
     }
@@ -35,10 +39,10 @@ public class RecyclerViewAdapter extends RecyclerView.Adapter<RecyclerViewAdapte
         return list.size();
     }
 
-    public class MyViewHolder extends RecyclerView.ViewHolder {
+    class MyViewHolder extends RecyclerView.ViewHolder {
         TextView event, timings;
 
-        public MyViewHolder(View itemView) {
+        MyViewHolder(View itemView) {
             super(itemView);
             event = (TextView) itemView.findViewById(R.id.event);
             timings = (TextView) itemView.findViewById(R.id.timings);

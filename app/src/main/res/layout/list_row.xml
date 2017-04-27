@@ -6,9 +6,9 @@
 
     <ImageView
         android:id="@+id/img"
-        android:layout_width="60dp"
-        android:layout_height="60dp"
-        android:layout_marginRight="5dp"
+        android:layout_width="80dp"
+        android:layout_height="80dp"
+        android:layout_marginRight="10dp"
         android:tint="@color/material_deep_teal_500"
         android:src="@drawable/circle"/>
 
@@ -17,10 +17,10 @@
         android:layout_width="wrap_content"
         android:layout_height="wrap_content"
         android:layout_alignTop="@+id/img"
-        android:paddingTop="2dp"
+        android:layout_marginTop="5dp"
         android:layout_toRightOf="@+id/img"
         android:text="Event"
-        android:textSize="25sp" />
+        android:textSize="30sp" />
 
     <TextView
         android:id="@+id/timings"
@@ -29,6 +29,6 @@
         android:layout_below="@+id/event"
         android:layout_toRightOf="@+id/img"
         android:text="Timings"
-        android:textSize="15sp" />
+        android:textSize="20sp" />
 
 </RelativeLayout>

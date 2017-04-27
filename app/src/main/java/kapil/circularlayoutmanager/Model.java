@@ -1,22 +1,22 @@
 package kapil.circularlayoutmanager;
 
-public class Model {
+class Model {
 
     private String event, timings;
 
-    public String getEvent() {
+    String getEvent() {
         return event;
     }
 
-    public void setEvent(String event) {
+    void setEvent(String event) {
         this.event = event;
     }
 
-    public String getTimings() {
+    String getTimings() {
         return timings;
     }
 
-    public void setTimings(String timings) {
+    void setTimings(String timings) {
         this.timings = timings;
     }
 }

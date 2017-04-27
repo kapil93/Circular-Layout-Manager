@@ -3,13 +3,12 @@ package com.kapil.circularlayoutmanager;
 import android.content.Context;
 import android.graphics.Rect;
 import android.support.v7.widget.RecyclerView;
-import android.util.TypedValue;
 import android.view.View;
 
 import java.util.List;
 
 /**
- * This is a custom layout manager for recycler view which displays list items in a circular or
+ * This is majorRadius custom layout manager for recycler view which displays list items in majorRadius circular or
  * elliptical fashion.
  */
 
@@ -24,22 +23,18 @@ public class CircularLayoutManager extends RecyclerView.LayoutManager {
     private boolean scrolled;
 
     private float radius;
-    private float a, b;
+    private float majorRadius, minorRadius;
     private float centerX;
 
     public CircularLayoutManager(Context context, int radius, int centerX) {
-        this.radius = DpToPx(context, radius);
-        this.centerX = DpToPx(context, centerX);
+        this.radius = Utils.dpToPx(context, radius);
+        this.centerX = Utils.dpToPx(context, centerX);
     }
 
-    public CircularLayoutManager(Context context, int a, int b, int centerX) {
-        this.a = DpToPx(context, a);
-        this.b = DpToPx(context, b);
-        this.centerX = DpToPx(context, centerX);
-    }
-
-    private float DpToPx(Context context, float dp) {
-        return TypedValue.applyDimension(TypedValue.COMPLEX_UNIT_DIP, dp, context.getResources().getDisplayMetrics());
+    public CircularLayoutManager(Context context, int majorRadius, int minorRadius, int centerX) {
+        this.majorRadius = Utils.dpToPx(context, majorRadius);
+        this.minorRadius = Utils.dpToPx(context, minorRadius);
+        this.centerX = Utils.dpToPx(context, centerX);
     }
 
     @Override
@@ -52,12 +47,16 @@ public class CircularLayoutManager extends RecyclerView.LayoutManager {
         super.onAttachedToWindow(view);
 
         recyclerView = view;
-
         topOfFirstChild = 0;
-
         childDecoratedBoundsWithMargin = new Rect();
-
         scrolled = false;
+    }
+
+    @Override
+    public void onDetachedFromWindow(RecyclerView view, RecyclerView.Recycler recycler) {
+        super.onDetachedFromWindow(view, recycler);
+
+        removeAndRecycleAllViews(recycler);
     }
 
     @Override
@@ -99,9 +98,11 @@ public class CircularLayoutManager extends RecyclerView.LayoutManager {
 
             int childLeft;
             if (radius == 0) {
-                childLeft = calculateEllipseXFromY((childTop + (childTop + getDecoratedMeasuredHeight(child) + sumOfVerticalMargins)) / 2);
+                childLeft = calculateEllipseXFromY(childTop + (getDecoratedMeasuredHeight(child) +
+                        getTopDecorationHeight(child) - getBottomDecorationHeight(child) + sumOfVerticalMargins) / 2);
             } else {
-                childLeft = calculateCircleXFromY((childTop + (childTop + getDecoratedMeasuredHeight(child) + sumOfVerticalMargins)) / 2);
+                childLeft = calculateCircleXFromY(childTop + (getDecoratedMeasuredHeight(child) +
+                        getTopDecorationHeight(child) - getBottomDecorationHeight(child) + sumOfVerticalMargins) / 2);
             }
 
             if (!(recyclerBounds.intersects(recyclerBounds.left + childLeft, recyclerBounds.top + childTop,
@@ -134,42 +135,6 @@ public class CircularLayoutManager extends RecyclerView.LayoutManager {
         if (!scrolled) {
             stabilize();
         }
-    }
-
-    private void scaleChild(View child) {
-        int y = (child.getTop() + child.getBottom()) / 2;
-        float scale = 1 - (Math.abs(verticalCenter - y) / (float) recyclerBounds.height());
-
-        child.setPivotX(0);
-
-        child.setScaleX(scale);
-        child.setScaleY(scale);
-    }
-
-    private int calculateCircleXFromY(int y) {
-        int centerY = verticalCenter;
-
-        return (int) (Math.sqrt((radius * radius) - ((y - centerY) * (y - centerY))) + centerX);
-    }
-
-    private int calculateEllipseXFromY(int y) {
-        int centerY = verticalCenter;
-
-        return (int) (Math.sqrt((1 - (((y - centerY) * (y - centerY)) / (b * b))) * (a * a)) + centerX);
-    }
-
-    public void stabilize() {
-        int minDistance = Integer.MAX_VALUE;
-        for (int i = 0; i < getChildCount(); i++) {
-            View child = getChildAt(i);
-            int y = (child.getTop() + child.getBottom()) / 2;
-            if (Math.abs(y - verticalCenter) < Math.abs(minDistance)) {
-                minDistance = y - verticalCenter;
-            } else {
-                break;
-            }
-        }
-        recyclerView.smoothScrollBy(0, minDistance);
     }
 
     @Override
@@ -258,5 +223,39 @@ public class CircularLayoutManager extends RecyclerView.LayoutManager {
         fill(indexToStartFill, recycler);
 
         return dy;
+    }
+
+    private void scaleChild(View child) {
+        int y = (child.getTop() + child.getBottom()) / 2;
+        float scale = 1 - (Math.abs(verticalCenter - y) / (float) (recyclerBounds.height() - child.getHeight()));
+
+        child.setPivotX(0);
+
+        child.setScaleX(scale);
+        child.setScaleY(scale);
+    }
+
+    private int calculateCircleXFromY(int y) {
+        int centerY = verticalCenter;
+        return (int) (Math.sqrt((radius * radius) - ((y - centerY) * (y - centerY))) + centerX);
+    }
+
+    private int calculateEllipseXFromY(int y) {
+        int centerY = verticalCenter;
+        return (int) (Math.sqrt((1 - (((y - centerY) * (y - centerY)) / (minorRadius * minorRadius))) * (majorRadius * majorRadius)) + centerX);
+    }
+
+    public void stabilize() {
+        int minDistance = Integer.MAX_VALUE;
+        for (int i = 0; i < getChildCount(); i++) {
+            View child = getChildAt(i);
+            int y = (child.getTop() + child.getBottom()) / 2;
+            if (Math.abs(y - verticalCenter) < Math.abs(minDistance)) {
+                minDistance = y - verticalCenter;
+            } else {
+                break;
+            }
+        }
+        recyclerView.smoothScrollBy(0, minDistance);
     }
 }

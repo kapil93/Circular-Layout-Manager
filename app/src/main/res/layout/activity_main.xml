@@ -9,15 +9,13 @@
     android:orientation="vertical"
     tools:context="kapil.circularlayoutmanager.MainActivity">
 
-    <RelativeLayout
-        android:id="@+id/relativeLayout"
+    <com.kapil.circularlayoutmanager.CircularRelativeLayout
         android:layout_width="match_parent"
-        android:layout_height="400dp"
+        android:layout_height="0dp"
         android:background="@drawable/circle"
         android:layout_gravity="center">
 
         <TextView
-            android:id="@+id/title"
             android:layout_width="wrap_content"
             android:layout_height="wrap_content"
             android:layout_centerHorizontal="true"
@@ -27,26 +25,19 @@
             android:textSize="25sp" />
 
         <android.support.v7.widget.RecyclerView
-            android:id="@+id/list_container"
+            android:id="@+id/recycler_view"
             android:layout_width="match_parent"
             android:layout_height="match_parent"
-            android:layout_marginLeft="70dp"
-            android:layout_marginTop="100dp"
-            android:layout_marginRight="70dp"
-            android:layout_marginBottom="100dp"
             android:layout_centerInParent="true" />
 
-        <ImageView
-            android:id="@+id/click_wheel"
+        <com.kapil.circularlayoutmanager.ScrollWheel
+            android:id="@+id/scroll_wheel"
             android:layout_width="match_parent"
             android:layout_height="match_parent"
-            android:layout_centerInParent="true"
-            android:src="@drawable/empty_circle"
-            android:scaleType="fitCenter"
-            android:visibility="gone"/>
+            android:layout_centerInParent="true"/>
 
         <android.support.design.widget.FloatingActionButton
-            android:id="@+id/fab"
+            android:id="@+id/add_item_button"
             android:layout_width="wrap_content"
             android:layout_height="wrap_content"
             android:layout_alignParentBottom="true"
@@ -54,10 +45,10 @@
             android:layout_margin="16dp"
             android:src="@android:drawable/ic_input_add" />
 
-    </RelativeLayout>
+    </com.kapil.circularlayoutmanager.CircularRelativeLayout>
 
     <android.support.design.widget.FloatingActionButton
-        android:id="@+id/click_wheel_fab"
+        android:id="@+id/scroll_wheel_toggle_button"
         android:layout_width="wrap_content"
         android:layout_height="wrap_content"
         android:layout_gravity="bottom|end"
