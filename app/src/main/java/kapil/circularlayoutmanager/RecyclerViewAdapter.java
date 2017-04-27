@@ -39,6 +39,10 @@ class RecyclerViewAdapter extends RecyclerView.Adapter<RecyclerViewAdapter.MyVie
         return list.size();
     }
 
+    /**
+     * View Holder for recycler view.
+     */
+
     class MyViewHolder extends RecyclerView.ViewHolder {
         TextView event, timings;
 

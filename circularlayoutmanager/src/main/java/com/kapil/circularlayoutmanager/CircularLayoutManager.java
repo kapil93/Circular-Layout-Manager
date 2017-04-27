@@ -2,6 +2,7 @@ package com.kapil.circularlayoutmanager;
 
 import android.content.Context;
 import android.graphics.Rect;
+import android.support.annotation.IntDef;
 import android.support.v7.widget.RecyclerView;
 import android.view.View;
 
@@ -13,6 +14,9 @@ import java.util.List;
  */
 
 public class CircularLayoutManager extends RecyclerView.LayoutManager {
+    private static final int CIRCLE = 0;
+    private static final int ELLIPSE = 1;
+
     private RecyclerView recyclerView;
     private Rect recyclerBounds;
 
@@ -26,15 +30,43 @@ public class CircularLayoutManager extends RecyclerView.LayoutManager {
     private float majorRadius, minorRadius;
     private float centerX;
 
+    private @LayoutPath int layoutPath;
+
+    @IntDef({CIRCLE, ELLIPSE})
+    @interface LayoutPath {
+
+    }
+
+    /**
+     * Creates a circular layout manager.
+     *
+     * @param context Current context, will be to used to access resources.
+     * @param radius  Radius of the imaginary circle in dp.
+     * @param centerX X-coordinate of center of the imaginary circle in dp.
+     */
+
     public CircularLayoutManager(Context context, int radius, int centerX) {
         this.radius = Utils.dpToPx(context, radius);
         this.centerX = Utils.dpToPx(context, centerX);
+
+        layoutPath = CIRCLE;
     }
+
+    /**
+     * Creates an elliptical layout manager.
+     *
+     * @param context     Current context, will be to used to access resources.
+     * @param majorRadius Major radius of the imaginary ellipse in dp.
+     * @param minorRadius Minor radius of the imaginary ellipse in dp.
+     * @param centerX     X-coordinate of center of the imaginary ellipse in dp.
+     */
 
     public CircularLayoutManager(Context context, int majorRadius, int minorRadius, int centerX) {
         this.majorRadius = Utils.dpToPx(context, majorRadius);
         this.minorRadius = Utils.dpToPx(context, minorRadius);
         this.centerX = Utils.dpToPx(context, centerX);
+
+        layoutPath = ELLIPSE;
     }
 
     @Override
@@ -57,6 +89,7 @@ public class CircularLayoutManager extends RecyclerView.LayoutManager {
         super.onDetachedFromWindow(view, recycler);
 
         removeAndRecycleAllViews(recycler);
+        recycler.clear();
     }
 
     @Override
@@ -77,6 +110,14 @@ public class CircularLayoutManager extends RecyclerView.LayoutManager {
         }
     }
 
+    /**
+     * This function lays out child views into appropriate position with respect to an anchor,
+     * (topOfFirstChild).
+     *
+     * @param indexToStartFill Index of child to start layout operation.
+     * @param recycler         Recycler, for detaching, scraping and recycling of child views.
+     */
+
     private void fill(int indexToStartFill, RecyclerView.Recycler recycler) {
         if (indexToStartFill < 0) {
             indexToStartFill = 0;
@@ -96,13 +137,17 @@ public class CircularLayoutManager extends RecyclerView.LayoutManager {
             int sumOfVerticalMargins = ((RecyclerView.LayoutParams) child.getLayoutParams()).topMargin
                     + ((RecyclerView.LayoutParams) child.getLayoutParams()).bottomMargin;
 
-            int childLeft;
-            if (radius == 0) {
-                childLeft = calculateEllipseXFromY(childTop + (getDecoratedMeasuredHeight(child) +
-                        getTopDecorationHeight(child) - getBottomDecorationHeight(child) + sumOfVerticalMargins) / 2);
-            } else {
-                childLeft = calculateCircleXFromY(childTop + (getDecoratedMeasuredHeight(child) +
-                        getTopDecorationHeight(child) - getBottomDecorationHeight(child) + sumOfVerticalMargins) / 2);
+            int childLeft = 0;
+
+            switch (layoutPath) {
+                case CIRCLE:
+                    childLeft = calculateEllipseXFromY(childTop + (getDecoratedMeasuredHeight(child) +
+                            getTopDecorationHeight(child) - getBottomDecorationHeight(child) + sumOfVerticalMargins) / 2);
+                    break;
+                case ELLIPSE:
+                    childLeft = calculateCircleXFromY(childTop + (getDecoratedMeasuredHeight(child) +
+                            getTopDecorationHeight(child) - getBottomDecorationHeight(child) + sumOfVerticalMargins) / 2);
+                    break;
             }
 
             if (!(recyclerBounds.intersects(recyclerBounds.left + childLeft, recyclerBounds.top + childTop,
@@ -117,7 +162,7 @@ public class CircularLayoutManager extends RecyclerView.LayoutManager {
             addView(child);
 
             layoutDecoratedWithMargins(child, childLeft, childTop, childLeft + getDecoratedMeasuredWidth(child)
-                            + sumOfHorizontalMargins, childTop + getDecoratedMeasuredHeight(child) + sumOfVerticalMargins);
+                    + sumOfHorizontalMargins, childTop + getDecoratedMeasuredHeight(child) + sumOfVerticalMargins);
 
             getDecoratedBoundsWithMargins(child, childDecoratedBoundsWithMargin);
 
@@ -225,6 +270,12 @@ public class CircularLayoutManager extends RecyclerView.LayoutManager {
         return dy;
     }
 
+    /**
+     * Scales the width and height of a child view depending on it's vertical positioning.
+     *
+     * @param child Child View to be scaled.
+     */
+
     private void scaleChild(View child) {
         int y = (child.getTop() + child.getBottom()) / 2;
         float scale = 1 - (Math.abs(verticalCenter - y) / (float) (recyclerBounds.height() - child.getHeight()));
@@ -235,15 +286,36 @@ public class CircularLayoutManager extends RecyclerView.LayoutManager {
         child.setScaleY(scale);
     }
 
+    /**
+     * This function calculates horizontal position of child view depending on it's vertical position
+     * using the circle equation.
+     *
+     * @param y Vertical positioning of the child view.
+     * @return Horizontal positioning of the child view.
+     */
+
     private int calculateCircleXFromY(int y) {
         int centerY = verticalCenter;
         return (int) (Math.sqrt((radius * radius) - ((y - centerY) * (y - centerY))) + centerX);
     }
 
+    /**
+     * This function calculates horizontal position of child view depending on it's vertical position
+     * using the circle equation.
+     *
+     * @param y Vertical positioning of the child view.
+     * @return Horizontal positioning of the child view.
+     */
+
     private int calculateEllipseXFromY(int y) {
         int centerY = verticalCenter;
         return (int) (Math.sqrt((1 - (((y - centerY) * (y - centerY)) / (minorRadius * minorRadius))) * (majorRadius * majorRadius)) + centerX);
     }
+
+    /**
+     * This function is responsible for centering of the list items on idle scroll state with
+     * reference to a vertical center.
+     */
 
     public void stabilize() {
         int minDistance = Integer.MAX_VALUE;

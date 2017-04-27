@@ -1,7 +1,8 @@
 package com.kapil.circularlayoutmanager;
 
 /**
- * Created by witworks on 28/04/17.
+ * This interface provides callback regarding recycler view item click and long click detected from
+ * the scroll wheel when.
  */
 
 public interface OnItemClickListener {

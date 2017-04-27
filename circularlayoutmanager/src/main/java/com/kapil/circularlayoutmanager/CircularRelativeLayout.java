@@ -7,11 +7,13 @@ import android.graphics.Path;
 import android.os.Build;
 import android.support.annotation.IntDef;
 import android.util.AttributeSet;
-import android.view.ViewGroup;
 import android.widget.RelativeLayout;
 
 /**
  * It is a Relative Layout clipped into a circle or an ellipse depending upon it's width and height.
+ *
+ * It also provides functionality to set width and height equal in case of match_parent
+ * initialization of one the parameters depending on the value of primaryDimension.
  */
 
 public class CircularRelativeLayout extends RelativeLayout {
@@ -81,7 +83,23 @@ public class CircularRelativeLayout extends RelativeLayout {
         return primaryDimension;
     }
 
-    public void setPrimaryDimension(int primaryDimension) {
+    /**
+     * Sets primary dimension of the view so that it's value can be set to the other dimension of
+     * the layout.
+     *
+     * @param primaryDimension Can be one of WIDTH, HEIGHT and NONE.
+     *
+     *                         When WIDTH is set as the primary dimension, the value of the width of
+     *                         the layout is taken and set as height of the layout to form a square.
+     *
+     *                         When HEIGHT is set as the primary dimension, the value of the height
+     *                         of the layout is taken and set as width of the layout to form a square.
+     *
+     *                         When NONE is set as the primary dimension, the value of neither width
+     *                         nor height are altered.
+     */
+
+    public void setPrimaryDimension(@Dimension int primaryDimension) {
         this.primaryDimension = primaryDimension;
     }
 }

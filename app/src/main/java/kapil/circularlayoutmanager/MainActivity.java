@@ -15,6 +15,10 @@ import com.kapil.circularlayoutmanager.ScrollWheel;
 import java.util.ArrayList;
 import java.util.List;
 
+/**
+ * An example activity implementing a recycler view with a circular layout manager and scroll wheel.
+ */
+
 public class MainActivity extends AppCompatActivity implements View.OnClickListener {
 
     private RecyclerView recyclerView;

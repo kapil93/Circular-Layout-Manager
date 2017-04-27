@@ -1,5 +1,9 @@
 package kapil.circularlayoutmanager;
 
+/**
+ * Dummy list item model.
+ */
+
 class Model {
 
     private String event, timings;

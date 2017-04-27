@@ -14,7 +14,7 @@ import android.view.View;
 /**
  * This view implements scroll wheel functionality.
  *
- * It converts circular touch motion into feed for the scrolling of a recycler view.
+ * It converts circular touch motion into input for the scrolling of a recycler view.
  */
 
 public class ScrollWheel extends View implements GestureDetector.OnGestureListener {
@@ -124,7 +124,7 @@ public class ScrollWheel extends View implements GestureDetector.OnGestureListen
 
     @Override
     public boolean onSingleTapUp(MotionEvent e) {
-        if (onItemClickListener != null) {
+        if ((onItemClickListener != null) && (consumeTouchOutsideTouchAreaEnabled)) {
             int childIndex = getChildIndexUnder(e.getX(), e.getY());
             if (childIndex != -1) {
                 onItemClickListener.onItemClick(ScrollWheel.this, childIndex);
@@ -207,6 +207,12 @@ public class ScrollWheel extends View implements GestureDetector.OnGestureListen
         return recyclerView;
     }
 
+    /**
+     * Setter function for recycler view.
+     *
+     * @param recyclerView Instance of recycler view that will be scrolled using scroll wheel.
+     */
+
     public void setRecyclerView(RecyclerView recyclerView) {
         this.recyclerView = recyclerView;
     }
@@ -219,6 +225,14 @@ public class ScrollWheel extends View implements GestureDetector.OnGestureListen
         return scrollWheelEnabled;
     }
 
+    /**
+     * Function to toggle scroll wheel functionality.
+     *
+     * By default set to true.
+     *
+     * @param scrollWheelEnabled true or false.
+     */
+
     public void setScrollWheelEnabled(boolean scrollWheelEnabled) {
         this.scrollWheelEnabled = scrollWheelEnabled;
     }
@@ -226,6 +240,20 @@ public class ScrollWheel extends View implements GestureDetector.OnGestureListen
     public boolean isConsumeTouchOutsideTouchAreaEnabled() {
         return consumeTouchOutsideTouchAreaEnabled;
     }
+
+    /**
+     * Toggle for enabling or disabling consumption of touch input outside the touch area.
+     *
+     * It can be set to true if only item click or item long click callback is needed, or can be set
+     * to false if the touch events are required.
+     *
+     * The touch input would be simply passed to the next
+     * view in case of touch down action outside touch area if set to false.
+     *
+     * By default set to true.
+     *
+     * @param consumeTouchOutsideTouchAreaEnabled true or false.
+     */
 
     public void setConsumeTouchOutsideTouchAreaEnabled(boolean consumeTouchOutsideTouchAreaEnabled) {
         this.consumeTouchOutsideTouchAreaEnabled = consumeTouchOutsideTouchAreaEnabled;
@@ -252,6 +280,15 @@ public class ScrollWheel extends View implements GestureDetector.OnGestureListen
     public boolean isHighlightTouchAreaEnabled() {
         return highlightTouchAreaEnabled;
     }
+
+    /**
+     * Function to show or hide path of action of the scroll wheel. Enabling it will highlight an
+     * area on the screen as a cue for the user to use the scroll wheel.
+     *
+     * By default set to true.
+     *
+     * @param highlightTouchAreaEnabled true or false.
+     */
 
     public void setHighlightTouchAreaEnabled(boolean highlightTouchAreaEnabled) {
         this.highlightTouchAreaEnabled = highlightTouchAreaEnabled;
