@@ -195,7 +195,16 @@ public class ScrollWheel extends View implements GestureDetector.OnGestureListen
         return true;
     }
 
-    int getChildIndexUnder(float x, float y) {
+    /**
+     * Detects the child view under a particular point.
+     *
+     * @param x X-coordinate of point.
+     * @param y Y-coordinate of point.
+     * @return  Index of child view if it is found under the point, -1 if there is no child view
+     *          found under the point.
+     */
+
+    private int getChildIndexUnder(float x, float y) {
         View child = recyclerView.findChildViewUnder(x, y);
         if (child != null) {
             return recyclerView.indexOfChild(child);
