@@ -30,3 +30,6 @@ dependencies {
     compile 'com.android.support:recyclerview-v7:25.3.1'
     testCompile 'junit:junit:4.12'
 }
+
+apply from: '../install.gradle'
+apply from: '../bintray.gradle'
