@@ -9,7 +9,7 @@ import android.view.View;
 import java.util.List;
 
 /**
- * This is majorRadius custom layout manager for recycler view which displays list items in majorRadius circular or
+ * This is a custom layout manager for recycler view which displays list items in a circular or
  * elliptical fashion.
  */
 
@@ -141,11 +141,11 @@ public class CircularLayoutManager extends RecyclerView.LayoutManager {
 
             switch (layoutPath) {
                 case CIRCLE:
-                    childLeft = calculateEllipseXFromY(childTop + (getDecoratedMeasuredHeight(child) +
+                    childLeft = calculateCircleXFromY(childTop + (getDecoratedMeasuredHeight(child) +
                             getTopDecorationHeight(child) - getBottomDecorationHeight(child) + sumOfVerticalMargins) / 2);
                     break;
                 case ELLIPSE:
-                    childLeft = calculateCircleXFromY(childTop + (getDecoratedMeasuredHeight(child) +
+                    childLeft = calculateEllipseXFromY(childTop + (getDecoratedMeasuredHeight(child) +
                             getTopDecorationHeight(child) - getBottomDecorationHeight(child) + sumOfVerticalMargins) / 2);
                     break;
             }
@@ -291,7 +291,7 @@ public class CircularLayoutManager extends RecyclerView.LayoutManager {
      * using the circle equation.
      *
      * @param y Vertical positioning of the child view.
-     * @return Horizontal positioning of the child view.
+     * @return  Horizontal positioning of the child view.
      */
 
     private int calculateCircleXFromY(int y) {
@@ -304,7 +304,7 @@ public class CircularLayoutManager extends RecyclerView.LayoutManager {
      * using the circle equation.
      *
      * @param y Vertical positioning of the child view.
-     * @return Horizontal positioning of the child view.
+     * @return  Horizontal positioning of the child view.
      */
 
     private int calculateEllipseXFromY(int y) {
