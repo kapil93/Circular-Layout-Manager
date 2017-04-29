@@ -2,7 +2,7 @@ ext {
     bintrayRepo = 'Maven'
     bintrayName = 'circular-layout-manager'
 
-    publishedGroupId = 'com.kapil.circular-layout-manager'
+    publishedGroupId = 'com.github.kapil93'
     libraryName = 'Circular Layout Manager'
     artifact = 'circular-layout-manager'
 
