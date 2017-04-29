@@ -1,0 +1,23 @@
+ext {
+    bintrayRepo = 'Maven'
+    bintrayName = 'circular-layout-manager'
+
+    publishedGroupId = 'com.kapil.circular-layout-manager'
+    libraryName = 'Circular Layout Manager'
+    artifact = 'circular-layout-manager'
+
+    libraryDescription = 'Custom Layout Manager for Recycler View which lays out its child views in circular or elliptical fashion'
+
+    siteUrl = 'https://github.com/kapil93/Circular-Layout-Manager'
+    gitUrl = 'https://github.com/kapil93/Circular-Layout-Manager.git'
+
+    libraryVersion = '1.0.0'
+
+    developerId = 'kapil93'
+    developerName = 'Kapilesh Iyer'
+    developerEmail = 'kapilmail@ymail.com'
+
+    licenseName = 'The Apache Software License, Version 2.0'
+    licenseUrl = 'http://www.apache.org/licenses/LICENSE-2.0.txt'
+    allLicenses = ["Apache-2.0"]
+}
