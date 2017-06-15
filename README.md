@@ -9,7 +9,7 @@ Circular Relative Layout is provided to clip the layout containing recycler view
 
 <br>
 
-![Animation](app/src/main/res/assets/clm.gif)
+![Animation](app/src/main/assets/clm.gif)
 
 <br>
 
