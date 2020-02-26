@@ -1,10 +1,11 @@
 package kapil.circularlayoutmanager;
 
 import android.content.Context;
-import android.support.v7.widget.RecyclerView;
 import android.view.GestureDetector;
 import android.view.MotionEvent;
 import android.view.View;
+
+import androidx.recyclerview.widget.RecyclerView;
 
 /**
  * Item click listener for recycler view which uses {@link GestureDetector} to detect a single tap

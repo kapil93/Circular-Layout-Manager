@@ -4,8 +4,10 @@ import android.content.Context;
 import android.graphics.Canvas;
 import android.graphics.Color;
 import android.graphics.Paint;
-import android.support.annotation.Nullable;
-import android.support.v7.widget.RecyclerView;
+
+import androidx.annotation.Nullable;
+import androidx.recyclerview.widget.RecyclerView;
+
 import android.util.AttributeSet;
 import android.view.GestureDetector;
 import android.view.MotionEvent;
@@ -13,7 +15,7 @@ import android.view.View;
 
 /**
  * This view implements scroll wheel functionality.
- *
+ * <p>
  * It converts circular touch motion into input for the scrolling of a recycler view.
  */
 
@@ -99,7 +101,13 @@ public class ScrollWheel extends View implements GestureDetector.OnGestureListen
         }
 
         if (event.getActionMasked() == MotionEvent.ACTION_UP) {
-            ((CircularLayoutManager) recyclerView.getLayoutManager()).stabilize();
+
+            CircularLayoutManager a = ((CircularLayoutManager) recyclerView.getLayoutManager());
+
+            if (a != null) {
+                a.stabilize();
+            }
+
         }
 
         return gestureDetector.onTouchEvent(event);
@@ -200,8 +208,8 @@ public class ScrollWheel extends View implements GestureDetector.OnGestureListen
      *
      * @param x X-coordinate of point.
      * @param y Y-coordinate of point.
-     * @return  Index of child view if it is found under the point, -1 if there is no child view
-     *          found under the point.
+     * @return Index of child view if it is found under the point, -1 if there is no child view
+     * found under the point.
      */
 
     private int getChildIndexUnder(float x, float y) {
@@ -236,7 +244,7 @@ public class ScrollWheel extends View implements GestureDetector.OnGestureListen
 
     /**
      * Function to toggle scroll wheel functionality.
-     *
+     * <p>
      * By default set to true.
      *
      * @param scrollWheelEnabled true or false.
@@ -252,13 +260,13 @@ public class ScrollWheel extends View implements GestureDetector.OnGestureListen
 
     /**
      * Toggle for enabling or disabling consumption of touch input outside the touch area.
-     *
+     * <p>
      * It can be set to true if only item click or item long click callback is needed, or can be set
      * to false if the touch events are required.
-     *
+     * <p>
      * The touch input would be simply passed to the next
      * view in case of touch down action outside touch area if set to false.
-     *
+     * <p>
      * By default set to true.
      *
      * @param consumeTouchOutsideTouchAreaEnabled true or false.
@@ -293,7 +301,7 @@ public class ScrollWheel extends View implements GestureDetector.OnGestureListen
     /**
      * Function to show or hide path of action of the scroll wheel. Enabling it will highlight an
      * area on the screen as a cue for the user to use the scroll wheel.
-     *
+     * <p>
      * By default set to true.
      *
      * @param highlightTouchAreaEnabled true or false.

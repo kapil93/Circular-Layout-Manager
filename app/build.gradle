@@ -1,13 +1,17 @@
 apply plugin: 'com.android.application'
 
+apply plugin: 'kotlin-android'
+
+apply plugin: 'kotlin-android-extensions'
+
 android {
-    compileSdkVersion 25
-    buildToolsVersion '25.0.2'
+    compileSdkVersion 29
+    buildToolsVersion '25.0.3'
 
     defaultConfig {
         applicationId "kapil.circularlayoutmanager"
         minSdkVersion 15
-        targetSdkVersion 25
+        targetSdkVersion 29
         versionCode 1
         versionName "1.0"
     }
@@ -20,9 +24,12 @@ android {
 }
 
 dependencies {
-    compile fileTree(include: ['*.jar'], dir: 'libs')
-    testCompile 'junit:junit:4.12'
-    compile 'com.android.support:appcompat-v7:25.3.1'
-    compile 'com.android.support:design:25.3.1'
-    compile project(':circular-layout-manager')
+    implementation fileTree(include: ['*.jar'], dir: 'libs')
+    testImplementation 'junit:junit:4.12'
+    implementation 'androidx.appcompat:appcompat:1.1.0'
+    implementation 'androidx.annotation:annotation:1.1.0'
+    implementation 'androidx.recyclerview:recyclerview:1.1.0'
+    testImplementation 'junit:junit:4.12'
+    implementation project(':circular-layout-manager')
+    implementation 'com.google.android.material:material:1.1.0'
 }

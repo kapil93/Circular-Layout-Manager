@@ -1,13 +1,15 @@
 package kapil.circularlayoutmanager;
 
 import android.os.Bundle;
-import android.support.design.widget.FloatingActionButton;
-import android.support.v7.app.AppCompatActivity;
-import android.support.v7.widget.RecyclerView;
+
 import android.view.View;
 import android.widget.TextView;
 import android.widget.Toast;
 
+import androidx.appcompat.app.AppCompatActivity;
+import androidx.recyclerview.widget.RecyclerView;
+
+import com.google.android.material.floatingactionbutton.FloatingActionButton;
 import com.kapil.circularlayoutmanager.CircularLayoutManager;
 import com.kapil.circularlayoutmanager.OnItemClickListener;
 import com.kapil.circularlayoutmanager.ScrollWheel;

@@ -3,9 +3,10 @@ package kapil.circularlayoutmanager;
 import android.app.Activity;
 import android.graphics.Point;
 import android.graphics.Rect;
-import android.support.v7.widget.RecyclerView;
 import android.view.Display;
 import android.view.View;
+
+import androidx.recyclerview.widget.RecyclerView;
 
 import java.util.ArrayList;
 import java.util.HashMap;

@@ -5,13 +5,15 @@ import android.content.Context;
 import android.graphics.Canvas;
 import android.graphics.Path;
 import android.os.Build;
-import android.support.annotation.IntDef;
+
+import androidx.annotation.IntDef;
+
 import android.util.AttributeSet;
 import android.widget.RelativeLayout;
 
 /**
  * It is a Relative Layout clipped into a circle or an ellipse depending upon it's width and height.
- *
+ * <p>
  * It also provides functionality to set width and height equal in case of match_parent
  * initialization of one the parameters depending on the value of primaryDimension.
  */
@@ -22,7 +24,8 @@ public class CircularRelativeLayout extends RelativeLayout {
     private static final int NONE = 2;
 
     private Path ovalPath;
-    private @Dimension int primaryDimension;
+    private @Dimension
+    int primaryDimension;
 
     @IntDef({WIDTH, HEIGHT, NONE})
     @interface Dimension {
@@ -88,13 +91,13 @@ public class CircularRelativeLayout extends RelativeLayout {
      * the layout.
      *
      * @param primaryDimension Can be one of WIDTH, HEIGHT and NONE.
-     *
+     *                         <p>
      *                         When WIDTH is set as the primary dimension, the value of the width of
      *                         the layout is taken and set as height of the layout to form a square.
-     *
+     *                         <p>
      *                         When HEIGHT is set as the primary dimension, the value of the height
      *                         of the layout is taken and set as width of the layout to form a square.
-     *
+     *                         <p>
      *                         When NONE is set as the primary dimension, the value of neither width
      *                         nor height are altered.
      */

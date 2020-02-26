@@ -2,8 +2,9 @@ package com.kapil.circularlayoutmanager;
 
 import android.content.Context;
 import android.graphics.Rect;
-import android.support.annotation.IntDef;
-import android.support.v7.widget.RecyclerView;
+import androidx.annotation.IntDef;
+import androidx.recyclerview.widget.RecyclerView;
+
 import android.view.View;
 
 import java.util.List;

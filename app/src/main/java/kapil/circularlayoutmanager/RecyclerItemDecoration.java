@@ -2,9 +2,10 @@ package kapil.circularlayoutmanager;
 
 import android.content.Context;
 import android.graphics.Rect;
-import android.support.v7.widget.RecyclerView;
 import android.util.TypedValue;
 import android.view.View;
+
+import androidx.recyclerview.widget.RecyclerView;
 
 /**
  * Item decorator for recycler view. Adds margin to the outermost children of the list to induce an
