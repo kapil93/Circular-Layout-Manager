@@ -6,21 +6,22 @@ import android.graphics.Canvas
 import android.graphics.Path
 import android.os.Build
 import android.util.AttributeSet
-import android.widget.RelativeLayout
+import androidx.constraintlayout.widget.ConstraintLayout
 
 /**
- * It is a Relative Layout clipped into a circle or an ellipse depending upon it's width and height.
+ * It is a Constraint Layout clipped into a circle or an ellipse depending upon it's width and
+ * height.
  *
  * It also provides functionality to set width and height equal in case of match_parent
  * initialization of one the parameters depending on the value of primaryDimension.
  *
  * The same logic could be applied to any layout of choice.
  */
-class CircularRelativeLayout @JvmOverloads constructor(
+class CircularConstraintLayout @JvmOverloads constructor(
     context: Context,
     attrs: AttributeSet? = null,
     defStyleAttr: Int = 0
-) : RelativeLayout(context, attrs, defStyleAttr) {
+) : ConstraintLayout(context, attrs, defStyleAttr) {
 
     enum class PrimaryDimension {
         WIDTH,
@@ -42,7 +43,8 @@ class CircularRelativeLayout @JvmOverloads constructor(
      * When HEIGHT is set as the primary dimension, the value of the height of the layout is taken
      * and set as width of the layout to form a square.
      *
-     * When NONE is set as the primary dimension, the value of neither width nor height are altered.
+     * When NONE is set as the primary dimension, the value of neither width nor height are altered
+     * and the dimensions of the layout could be set as needed.
      *
      * If primaryDimension is set dynamically after the view is inflated, it must be invalidated for
      * the change to take effect.
@@ -59,9 +61,7 @@ class CircularRelativeLayout @JvmOverloads constructor(
         when (primaryDimension) {
             PrimaryDimension.WIDTH -> layoutParams.height = measuredWidth
             PrimaryDimension.HEIGHT -> layoutParams.width = measuredHeight
-            PrimaryDimension.NONE -> {
-                // do nothing
-            }
+            PrimaryDimension.NONE -> {}
         }
         ovalPath.reset()
         ovalPath.addOval(

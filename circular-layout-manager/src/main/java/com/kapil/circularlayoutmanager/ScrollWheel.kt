@@ -3,13 +3,13 @@ package com.kapil.circularlayoutmanager
 import android.content.Context
 import android.graphics.Canvas
 import android.graphics.Paint
-import android.support.annotation.ColorInt
-import android.support.v4.content.ContextCompat
-import android.support.v7.widget.RecyclerView
 import android.util.AttributeSet
 import android.view.GestureDetector
 import android.view.MotionEvent
 import android.view.View
+import androidx.annotation.ColorInt
+import androidx.core.content.ContextCompat
+import androidx.recyclerview.widget.RecyclerView
 import kotlin.math.min
 
 /**
@@ -131,9 +131,7 @@ class ScrollWheel @JvmOverloads constructor(
         return isConsumeTouchOutsideTouchAreaEnabled || touchInitiatedBetweenCircles
     }
 
-    override fun onShowPress(e: MotionEvent) {
-        // do nothing
-    }
+    override fun onShowPress(e: MotionEvent) {}
 
     override fun onSingleTapUp(e: MotionEvent): Boolean {
         if (onItemClickListener != null && isConsumeTouchOutsideTouchAreaEnabled) {
@@ -223,6 +221,7 @@ class ScrollWheel @JvmOverloads constructor(
         this.onItemClickListener = onItemClickListener
     }
 
+    @ColorInt
     fun getTouchAreaColor() = touchAreaPaint.color
 
     fun setTouchAreaColor(@ColorInt touchAreaColor: Int) {

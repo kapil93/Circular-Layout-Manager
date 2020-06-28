@@ -3,9 +3,10 @@ package kapil.circularlayoutmanager;
 import android.app.Activity;
 import android.graphics.Point;
 import android.graphics.Rect;
-import android.support.v7.widget.RecyclerView;
 import android.view.Display;
 import android.view.View;
+
+import androidx.recyclerview.widget.RecyclerView;
 
 import java.util.ArrayList;
 import java.util.HashMap;
@@ -258,7 +259,7 @@ public class CircularLayoutManagerOld extends RecyclerView.LayoutManager {
         display.getSize(size);
         screenWidth = size.x;
 
-        baseScale = (float) screenWidth*(1f/720f);
+        baseScale = (float) screenWidth * (1f / 720f);
     }
 
     @Override
@@ -369,9 +370,9 @@ public class CircularLayoutManagerOld extends RecyclerView.LayoutManager {
             view.setScaleX(baseScale);
             view.setScaleY(baseScale);
 
-            float scale = 1.5f*Math.abs((float) (mapWithKey_Index.get(0).y - point.y)) / ((float) (recyclerBounds.height() - (2 * heightOfView)));
-            view.setScaleX(baseScale/(1+(scale)));
-            view.setScaleY(baseScale/(1+(scale)));
+            float scale = 1.5f * Math.abs((float) (mapWithKey_Index.get(0).y - point.y)) / ((float) (recyclerBounds.height() - (2 * heightOfView)));
+            view.setScaleX(baseScale / (1 + (scale)));
+            view.setScaleY(baseScale / (1 + (scale)));
 
             layoutDecorated(view, getCoordinate(point, "left"),
                     getCoordinate(point, "top"),
@@ -498,9 +499,9 @@ public class CircularLayoutManagerOld extends RecyclerView.LayoutManager {
             view.setScaleX(baseScale);
             view.setScaleY(baseScale);
 
-            float scale = 1.5f*Math.abs((float) (mapWithKey_Index.get(0).y - newPoint.y)) / ((float) (recyclerBounds.height() - (2 * heightOfView)));
-            view.setScaleX(baseScale/(1+(scale)));
-            view.setScaleY(baseScale/(1+(scale)));
+            float scale = 1.5f * Math.abs((float) (mapWithKey_Index.get(0).y - newPoint.y)) / ((float) (recyclerBounds.height() - (2 * heightOfView)));
+            view.setScaleX(baseScale / (1 + (scale)));
+            view.setScaleY(baseScale / (1 + (scale)));
 
             layoutDecorated(view, getCoordinate(newPoint, "left"),
                     getCoordinate(newPoint, "top"),

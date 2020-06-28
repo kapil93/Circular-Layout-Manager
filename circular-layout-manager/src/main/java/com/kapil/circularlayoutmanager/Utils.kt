@@ -6,7 +6,7 @@ import android.util.TypedValue
 /**
  * This class contains utility helper functions.
  */
-internal object Utils {
+object Utils {
     /**
      * Function to convert a value given in dp to pixels (px).
      *
@@ -15,7 +15,6 @@ internal object Utils {
      *
      * @return The value in pixels.
      */
-    @JvmStatic
     fun dpToPx(context: Context, dp: Float) =
         TypedValue.applyDimension(TypedValue.COMPLEX_UNIT_DIP, dp, context.resources.displayMetrics)
 }

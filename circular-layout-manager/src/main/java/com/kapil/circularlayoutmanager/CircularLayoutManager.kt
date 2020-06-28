@@ -2,8 +2,8 @@ package com.kapil.circularlayoutmanager
 
 import android.content.Context
 import android.graphics.Rect
-import android.support.v7.widget.RecyclerView
 import android.view.View
+import androidx.recyclerview.widget.RecyclerView
 import com.kapil.circularlayoutmanager.Utils.dpToPx
 import kotlin.math.abs
 import kotlin.math.sqrt
@@ -151,7 +151,7 @@ class CircularLayoutManager : RecyclerView.LayoutManager {
                         + sumOfHorizontalMargins,
                 childTop + getDecoratedMeasuredHeight(child) + sumOfVerticalMargins
             )
-            getDecoratedBoundsWithMargins(child, childDecoratedBoundsWithMargin)
+            getDecoratedBoundsWithMargins(child, childDecoratedBoundsWithMargin!!)
             scaleChild(child)
             childTop += childDecoratedBoundsWithMargin!!.height()
         }
@@ -191,21 +191,21 @@ class CircularLayoutManager : RecyclerView.LayoutManager {
         if (childCount == 0) {
             return dy
         }
-        if (getPosition(getChildAt(childCount - 1)) == itemCount - 1) {
+        if (getPosition(getChildAt(childCount - 1)!!) == itemCount - 1) {
             val child = getChildAt(childCount - 1)
-            getDecoratedBoundsWithMargins(child, childDecoratedBoundsWithMargin)
+            getDecoratedBoundsWithMargins(child!!, childDecoratedBoundsWithMargin!!)
             if (childDecoratedBoundsWithMargin!!.bottom - delta < recyclerBounds!!.height()) {
                 var position = recyclerBounds!!.height()
-                var indexToStartFill = getPosition(getChildAt(0))
+                var indexToStartFill = getPosition(getChildAt(0)!!)
                 for (i in childCount - 1 downTo 0) {
-                    getDecoratedBoundsWithMargins(getChildAt(i), childDecoratedBoundsWithMargin)
+                    getDecoratedBoundsWithMargins(getChildAt(i)!!, childDecoratedBoundsWithMargin!!)
                     position -= childDecoratedBoundsWithMargin!!.height()
                     if (position <= 0) {
                         topOfFirstChild = position
                         if (topOfFirstChild <= -childDecoratedBoundsWithMargin!!.height()) {
                             topOfFirstChild += childDecoratedBoundsWithMargin!!.height()
                         }
-                        indexToStartFill = getPosition(getChildAt(i))
+                        indexToStartFill = getPosition(getChildAt(i)!!)
                         if (indexToStartFill >= itemCount) {
                             indexToStartFill = itemCount - 1
                         }
@@ -217,8 +217,8 @@ class CircularLayoutManager : RecyclerView.LayoutManager {
             }
         }
         topOfFirstChild -= delta
-        getDecoratedBoundsWithMargins(getChildAt(0), childDecoratedBoundsWithMargin)
-        var indexToStartFill = getPosition(getChildAt(0))
+        getDecoratedBoundsWithMargins(getChildAt(0)!!, childDecoratedBoundsWithMargin!!)
+        var indexToStartFill = getPosition(getChildAt(0)!!)
         if (topOfFirstChild > 0) {
             topOfFirstChild -= childDecoratedBoundsWithMargin!!.height()
             indexToStartFill--
@@ -281,7 +281,7 @@ class CircularLayoutManager : RecyclerView.LayoutManager {
         var minDistance = Int.MAX_VALUE
         for (i in 0 until childCount) {
             val child = getChildAt(i)
-            val y = (child.top + child.bottom) / 2
+            val y = (child!!.top + child.bottom) / 2
             minDistance = if (abs(y - verticalCenter) < abs(minDistance)) {
                 y - verticalCenter
             } else {
