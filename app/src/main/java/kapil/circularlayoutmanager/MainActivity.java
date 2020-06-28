@@ -64,7 +64,7 @@ public class MainActivity extends AppCompatActivity implements View.OnClickListe
         scrollWheel.setScrollWheelEnabled(false);
         scrollWheel.setHighlightTouchAreaEnabled(false);
         //scrollWheel.setConsumeTouchOutsideTouchAreaEnabled(false);
-        scrollWheel.setTouchAreaThickness(50);
+//        scrollWheel.setTouchAreaThickness(50);
         scrollWheel.setOnItemClickListener(new OnItemClickListener() {
             @Override
             public void onItemClick(ScrollWheel scrollWheel, int childIndex) {
