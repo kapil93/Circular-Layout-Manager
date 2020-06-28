@@ -1,0 +1,17 @@
+<?xml version="1.0" encoding="utf-8"?>
+<resources>
+    <declare-styleable name="CircularConstraintLayout">
+        <attr name="primaryDimension" format="enum">
+            <enum name="width" value="0" />
+            <enum name="height" value="1" />
+            <enum name="none" value="2" />
+        </attr>
+    </declare-styleable>
+
+    <declare-styleable name="ScrollWheel">
+        <attr name="isHighlightTouchAreaEnabled" format="boolean" />
+        <attr name="isHandleClicksEnabled" format="boolean" />
+        <attr name="touchAreaThickness" format="dimension" />
+        <attr name="touchAreaColor" format="color" />
+    </declare-styleable>
+</resources>

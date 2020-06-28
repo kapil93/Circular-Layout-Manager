@@ -1,5 +1,6 @@
 package com.kapil.circularlayoutmanager
 
+import android.annotation.SuppressLint
 import android.content.Context
 import android.graphics.Canvas
 import android.graphics.Paint
@@ -9,13 +10,15 @@ import android.view.MotionEvent
 import android.view.View
 import androidx.annotation.ColorInt
 import androidx.core.content.ContextCompat
-import androidx.recyclerview.widget.RecyclerView
 import kotlin.math.min
 
 /**
  * This view implements scroll wheel functionality.
  *
  * It converts circular touch motion into input for the scrolling of a recycler view.
+ *
+ * Touch Area of the scroll wheel is defined as the region between the circles formed by the outer
+ * and inner radii. Circular scrolling could be initiated only from this region.
  */
 class ScrollWheel @JvmOverloads constructor(
     context: Context,
@@ -24,41 +27,10 @@ class ScrollWheel @JvmOverloads constructor(
 ) : View(context, attrs, defStyleAttr), GestureDetector.OnGestureListener {
 
     /**
-     * recyclerView Instance of recycler view that will be scrolled using scroll wheel.
-     */
-    var recyclerView: RecyclerView? = null
-
-    /**
-     * Toggle to enable or disable scroll wheel functionality.
-     *
-     * By default set to true.
-     *
-     * scrollWheelEnabled true or false.
-     */
-    var isScrollWheelEnabled = true
-
-    /**
-     * Toggle for enabling or disabling consumption of touch input outside the touch area.
-     *
-     * It can be set to true if only item click or item long click callback is needed, or can be set
-     * to false if the touch events are required.
-     *
-     * The touch input would be simply passed to the next
-     * view in case of touch down action outside touch area if set to false.
-     *
-     * By default set to true.
-     *
-     * consumeTouchOutsideTouchAreaEnabled true or false.
-     */
-    var isConsumeTouchOutsideTouchAreaEnabled = true
-
-    /**
      * Function to show or hide path of action of the scroll wheel. Enabling it will highlight an
      * area on the screen as a cue for the user to use the scroll wheel.
      *
      * By default set to true.
-     *
-     * isHighlightTouchAreaEnabled true or false.
      */
     var isHighlightTouchAreaEnabled = true
         set(value) {
@@ -66,17 +38,40 @@ class ScrollWheel @JvmOverloads constructor(
             invalidate()
         }
 
-    private var xCenter = 0
-    private var yCenter = 0
-    private var innerRadius = 0
-    private var outerRadius = 0
+    /**
+     * Toggle to enable or disable detection of clicks and long clicks.
+     *
+     * It could be set to true if the touch area lies over the list partially or fully, and to false
+     * otherwise.
+     *
+     * By default set to true.
+     */
+    var isHandleClicksEnabled: Boolean = true
 
     var touchAreaThickness =
-        context.resources.getDimension(R.dimen.default_touch_area_thickness).toInt()
+        context.resources.getDimension(R.dimen.default_touch_area_thickness)
         set(value) {
             field = value
             invalidate()
         }
+
+    var onItemClickListener: ((Float, Float) -> Unit)? = null
+    var onItemLongClickListener: ((Float, Float) -> Unit)? = null
+
+    /**
+     * The scroll and fling listeners return the distance and velocity respectively by which the
+     * user has scrolled or flung. A positive value indicates movement in anticlockwise direction
+     * and a negative value indicates a movement in clockwise direction.
+     */
+    var onScrollListener: ((Float) -> Unit)? = null
+    var onFlingListener: ((Float) -> Unit)? = null
+
+    var onTouchReleasedListener: (() -> Unit)? = null
+
+    private var xCenter = 0f
+    private var yCenter = 0f
+    private var innerRadius = 0f
+    private var outerRadius = 0f
 
     private var touchInitiatedBetweenCircles = false
 
@@ -88,37 +83,47 @@ class ScrollWheel @JvmOverloads constructor(
 
     private var gestureDetector: GestureDetector = GestureDetector(context, this)
 
-    private var onItemClickListener: OnItemClickListener? = null
+    init {
+        context.theme.obtainStyledAttributes(attrs, R.styleable.ScrollWheel, 0, 0).apply {
+            isHandleClicksEnabled = getBoolean(R.styleable.ScrollWheel_isHandleClicksEnabled, true)
+            isHighlightTouchAreaEnabled =
+                getBoolean(R.styleable.ScrollWheel_isHighlightTouchAreaEnabled, true)
+            touchAreaThickness = getDimension(
+                R.styleable.ScrollWheel_touchAreaThickness,
+                context.resources.getDimension(R.dimen.default_touch_area_thickness)
+            )
+            setTouchAreaColor(
+                getColor(
+                    R.styleable.ScrollWheel_touchAreaColor,
+                    ContextCompat.getColor(context, R.color.default_touch_area_color)
+                )
+            )
+            recycle()
+        }
+    }
 
     override fun onMeasure(widthMeasureSpec: Int, heightMeasureSpec: Int) {
         super.onMeasure(widthMeasureSpec, heightMeasureSpec)
-        xCenter = measuredWidth / 2
-        yCenter = measuredHeight / 2
-        val minDimension = min(measuredWidth, measuredHeight)
-        outerRadius = minDimension / 2
+        xCenter = measuredWidth / 2f
+        yCenter = measuredHeight / 2f
+        outerRadius = min(measuredWidth, measuredHeight) / 2f
         innerRadius = outerRadius - touchAreaThickness
-        touchAreaPaint.strokeWidth = outerRadius - innerRadius.toFloat()
+        touchAreaPaint.strokeWidth = outerRadius - innerRadius
     }
 
     override fun onDraw(canvas: Canvas) {
         super.onDraw(canvas)
-        if (isHighlightTouchAreaEnabled) {
-            canvas.drawCircle(
-                xCenter.toFloat(),
-                yCenter.toFloat(),
-                (innerRadius + outerRadius) / 2f,
-                touchAreaPaint
-            )
-        }
+        if (isHighlightTouchAreaEnabled)
+            canvas.drawCircle(xCenter, yCenter, (innerRadius + outerRadius) / 2f, touchAreaPaint)
     }
 
+    // As the functionality of the view revolves around just providing a different experience for
+    // scrolling and not enabling scrolling itself, implementing accessibility features would
+    // provide no added value
+    @SuppressLint("ClickableViewAccessibility")
     override fun onTouchEvent(event: MotionEvent): Boolean {
-        if (recyclerView == null || !isScrollWheelEnabled) {
-            return super.onTouchEvent(event)
-        }
-        if (event.actionMasked == MotionEvent.ACTION_UP) {
-            (recyclerView!!.layoutManager as CircularLayoutManager).stabilize()
-        }
+        if (!isEnabled) return super.onTouchEvent(event)
+        if (event.actionMasked == MotionEvent.ACTION_UP) onTouchReleasedListener?.invoke()
         return gestureDetector.onTouchEvent(event)
     }
 
@@ -128,19 +133,7 @@ class ScrollWheel @JvmOverloads constructor(
         touchInitiatedBetweenCircles =
             ((x - xCenter) * (x - xCenter) + (y - yCenter) * (y - yCenter) > innerRadius * innerRadius
                     && (x - xCenter) * (x - xCenter) + (y - yCenter) * (y - yCenter) < outerRadius * outerRadius)
-        return isConsumeTouchOutsideTouchAreaEnabled || touchInitiatedBetweenCircles
-    }
-
-    override fun onShowPress(e: MotionEvent) {}
-
-    override fun onSingleTapUp(e: MotionEvent): Boolean {
-        if (onItemClickListener != null && isConsumeTouchOutsideTouchAreaEnabled) {
-            val childIndex = getChildIndexUnder(e.x, e.y)
-            if (childIndex != -1) {
-                onItemClickListener!!.onItemClick(this@ScrollWheel, childIndex)
-            }
-        }
-        return true
+        return isHandleClicksEnabled || touchInitiatedBetweenCircles
     }
 
     override fun onScroll(
@@ -149,32 +142,9 @@ class ScrollWheel @JvmOverloads constructor(
         distanceX: Float,
         distanceY: Float
     ): Boolean {
-        if (!touchInitiatedBetweenCircles) {
-            return false
-        }
-        var delta = 0
-        val x = e2.x
-        val y = e2.y
-        if (x <= xCenter && y < yCenter) {
-            delta = (distanceX - distanceY).toInt()
-        } else if (x > xCenter && y <= yCenter) {
-            delta = (distanceX + distanceY).toInt()
-        } else if (x >= xCenter && y > yCenter) {
-            delta = (-distanceX + distanceY).toInt()
-        } else if (x < xCenter && y >= yCenter) {
-            delta = (-distanceX - distanceY).toInt()
-        }
-        recyclerView!!.scrollBy(0, delta)
-        return true
-    }
-
-    override fun onLongPress(e: MotionEvent) {
-        if (onItemClickListener != null && isConsumeTouchOutsideTouchAreaEnabled) {
-            val childIndex = getChildIndexUnder(e.x, e.y)
-            if (childIndex != -1) {
-                onItemClickListener!!.onItemLongClick(this@ScrollWheel, childIndex)
-            }
-        }
+        if (touchInitiatedBetweenCircles)
+            onScrollListener?.invoke(calculateDelta(e2.x, e2.y, distanceX, distanceY))
+        return touchInitiatedBetweenCircles
     }
 
     override fun onFling(
@@ -183,42 +153,28 @@ class ScrollWheel @JvmOverloads constructor(
         velocityX: Float,
         velocityY: Float
     ): Boolean {
-        if (!touchInitiatedBetweenCircles) {
-            return false
-        }
-        var delta = 0
-        val x = e2.x
-        val y = e2.y
-        if (x <= xCenter && y < yCenter) {
-            delta = (velocityX - velocityY).toInt()
-        } else if (x > xCenter && y <= yCenter) {
-            delta = (velocityX + velocityY).toInt()
-        } else if (x >= xCenter && y > yCenter) {
-            delta = (-velocityX + velocityY).toInt()
-        } else if (x < xCenter && y >= yCenter) {
-            delta = (-velocityX - velocityY).toInt()
-        }
-        recyclerView!!.fling(0, -delta)
-        return true
+        if (touchInitiatedBetweenCircles)
+            onFlingListener?.invoke(-calculateDelta(e2.x, e2.y, velocityX, velocityY))
+        return touchInitiatedBetweenCircles
     }
 
-    /**
-     * Detects the child view under a particular point.
-     *
-     * @param x X-coordinate of point.
-     * @param y Y-coordinate of point.
-     * @return  Index of child view if it is found under the point, -1 if there is no child view
-     * found under the point.
-     */
-    private fun getChildIndexUnder(x: Float, y: Float): Int {
-        val child = recyclerView!!.findChildViewUnder(x, y)
-        return if (child != null) {
-            recyclerView!!.indexOfChild(child)
-        } else -1
+    override fun onSingleTapUp(e: MotionEvent): Boolean {
+        if (isHandleClicksEnabled) onItemClickListener?.invoke(e.x, e.y)
+        return isHandleClicksEnabled
     }
 
-    fun setOnItemClickListener(onItemClickListener: OnItemClickListener?) {
-        this.onItemClickListener = onItemClickListener
+    override fun onLongPress(e: MotionEvent) {
+        if (isHandleClicksEnabled) onItemLongClickListener?.invoke(e.x, e.y)
+    }
+
+    override fun onShowPress(e: MotionEvent) {}
+
+    private fun calculateDelta(x: Float, y: Float, dx: Float, dy: Float) = when {
+        (x <= xCenter && y < yCenter) -> (dx - dy)
+        (x > xCenter && y <= yCenter) -> (dx + dy)
+        (x >= xCenter && y > yCenter) -> (-dx + dy)
+        (x < xCenter && y >= yCenter) -> (-dx - dy)
+        else -> 0f
     }
 
     @ColorInt

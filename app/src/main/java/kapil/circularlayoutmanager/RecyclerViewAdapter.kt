@@ -1,40 +1,42 @@
 package kapil.circularlayoutmanager
 
-import android.content.Context
 import android.view.LayoutInflater
 import android.view.View
 import android.view.ViewGroup
 import android.widget.TextView
+import androidx.recyclerview.widget.DiffUtil
+import androidx.recyclerview.widget.ListAdapter
 import androidx.recyclerview.widget.RecyclerView
 import kapil.circularlayoutmanager.RecyclerViewAdapter.MyViewHolder
+import kotlinx.android.synthetic.main.list_row.view.*
 
-/**
- * Adapter for recycler view.
- */
-internal class RecyclerViewAdapter(
-    private val context: Context,
-    private val list: List<Model>
-) : RecyclerView.Adapter<MyViewHolder>() {
 
-    override fun onCreateViewHolder(parent: ViewGroup, viewType: Int): MyViewHolder {
-        return MyViewHolder(LayoutInflater.from(context).inflate(R.layout.list_row, parent, false))
+class RecyclerViewAdapter : ListAdapter<Model, MyViewHolder>(DIFF_CALLBACK) {
+
+    var onItemClickListener: (Model.() -> Unit)? = null
+
+    companion object {
+        private val DIFF_CALLBACK = object : DiffUtil.ItemCallback<Model>() {
+            override fun areItemsTheSame(oldItem: Model, newItem: Model) = oldItem.id == newItem.id
+            override fun areContentsTheSame(oldItem: Model, newItem: Model) = oldItem == newItem
+        }
     }
 
-    override fun onBindViewHolder(holder: MyViewHolder, position: Int) {
-        holder.event.text = list[position].event
-        holder.timings.text = list[position].timings
-    }
+    override fun onCreateViewHolder(parent: ViewGroup, viewType: Int): MyViewHolder =
+        MyViewHolder(LayoutInflater.from(parent.context).inflate(R.layout.list_row, parent, false))
 
-    override fun getItemCount(): Int {
-        return list.size
-    }
+    override fun onBindViewHolder(holder: MyViewHolder, position: Int) =
+        holder.bindTo(getItem(position)!!)
 
-    /**
-     * View Holder for recycler view.
-     */
-    internal inner class MyViewHolder(itemView: View) : RecyclerView.ViewHolder(itemView) {
-        var event: TextView = itemView.findViewById<View>(R.id.event) as TextView
-        var timings: TextView = itemView.findViewById<View>(R.id.timings) as TextView
-    }
+    inner class MyViewHolder(itemView: View) : RecyclerView.ViewHolder(itemView) {
 
+        private val eventView: TextView = itemView.event
+        private val timingsView: TextView = itemView.timings
+
+        fun bindTo(model: Model) {
+            eventView.text = model.event
+            timingsView.text = model.timings
+            itemView.setOnClickListener { onItemClickListener?.invoke(model) }
+        }
+    }
 }

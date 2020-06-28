@@ -1,10 +1,8 @@
 package com.kapil.circularlayoutmanager
 
-import android.content.Context
 import android.graphics.Rect
 import android.view.View
 import androidx.recyclerview.widget.RecyclerView
-import com.kapil.circularlayoutmanager.Utils.dpToPx
 import kotlin.math.abs
 import kotlin.math.sqrt
 
@@ -35,28 +33,26 @@ class CircularLayoutManager : RecyclerView.LayoutManager {
     /**
      * Creates a circular layout manager.
      *
-     * @param context Current context, will be to used to access resources.
      * @param radius  Radius of the imaginary circle in dp.
      * @param centerX X-coordinate of center of the imaginary circle in dp.
      */
-    constructor(context: Context?, radius: Int, centerX: Int) {
-        this.radius = dpToPx(context!!, radius.toFloat())
-        this.centerX = dpToPx(context, centerX.toFloat())
+    constructor(radius: Float, centerX: Float) {
+        this.radius = radius
+        this.centerX = centerX
         layoutPath = Path.CIRCLE
     }
 
     /**
      * Creates an elliptical layout manager.
      *
-     * @param context     Current context, will be to used to access resources.
      * @param majorRadius Major radius of the imaginary ellipse in dp.
      * @param minorRadius Minor radius of the imaginary ellipse in dp.
      * @param centerX     X-coordinate of center of the imaginary ellipse in dp.
      */
-    constructor(context: Context?, majorRadius: Int, minorRadius: Int, centerX: Int) {
-        this.majorRadius = dpToPx(context!!, majorRadius.toFloat())
-        this.minorRadius = dpToPx(context, minorRadius.toFloat())
-        this.centerX = dpToPx(context, centerX.toFloat())
+    constructor(majorRadius: Float, minorRadius: Float, centerX: Float) {
+        this.majorRadius = majorRadius
+        this.minorRadius = minorRadius
+        this.centerX = centerX
         layoutPath = Path.ELLIPSE
     }
 

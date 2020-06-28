@@ -1,121 +1,79 @@
 package kapil.circularlayoutmanager
 
 import android.os.Bundle
-import android.view.View
-import android.widget.TextView
 import android.widget.Toast
 import androidx.appcompat.app.AppCompatActivity
-import androidx.recyclerview.widget.RecyclerView
-import com.google.android.material.floatingactionbutton.FloatingActionButton
 import com.kapil.circularlayoutmanager.CircularLayoutManager
-import com.kapil.circularlayoutmanager.OnItemClickListener
-import com.kapil.circularlayoutmanager.ScrollWheel
-import java.util.*
+import com.kapil.circularlayoutmanager.INVALID_INDEX
+import com.kapil.circularlayoutmanager.getChildAdapterPosition
+import kotlinx.android.synthetic.main.activity_main.*
 
 /**
  * An example activity implementing a recycler view with a circular layout manager and scroll wheel.
+ *
+ * In this example, the scroll wheel touch area partially lays over the recycler view.
  */
-class MainActivity : AppCompatActivity(), View.OnClickListener {
-
-    private var recyclerView: RecyclerView? = null
-    private var scrollWheel: ScrollWheel? = null
-    private var addItemButton: FloatingActionButton? = null
-    private var scrollWheelToggleButton: FloatingActionButton? = null
-    private var list: MutableList<Model>? = null
+class MainActivity : AppCompatActivity() {
 
     override fun onCreate(savedInstanceState: Bundle?) {
         super.onCreate(savedInstanceState)
         setContentView(R.layout.activity_main)
-        initViews()
-        setViews()
+
+        initializeRecyclerView()
+        initializeScrollWheel()
+
+        addItemButton!!.setOnClickListener { addItemToList() }
+        scrollWheelToggleButton!!.setOnClickListener { toggleScrollWheel() }
     }
 
-    private fun initViews() {
-        recyclerView = findViewById<View>(R.id.recycler_view) as RecyclerView
-        scrollWheel = findViewById<View>(R.id.scroll_wheel) as ScrollWheel
-        addItemButton =
-            findViewById<View>(R.id.add_item_button) as FloatingActionButton
-        scrollWheelToggleButton =
-            findViewById<View>(R.id.scroll_wheel_toggle_button) as FloatingActionButton
-    }
-
-    private fun setViews() {
-        initializeList()
-        recyclerView!!.adapter = RecyclerViewAdapter(applicationContext, list!!)
-        recyclerView!!.addItemDecoration(RecyclerItemDecoration())
-        recyclerView!!.layoutManager = CircularLayoutManager(applicationContext, 200, -100)
-        recyclerView!!.addOnItemTouchListener(
-            OnRecyclerItemClickListener(
-                applicationContext,
-                object : OnRecyclerItemClickListener.OnItemClickListener {
-                    override fun onItemClick(parent: RecyclerView?, childIndex: Int) {
-                        Toast.makeText(
-                            this@MainActivity,
-                            (parent!!.getChildAt(childIndex)
-                                .findViewById<View>(R.id.event) as TextView).text,
-                            Toast.LENGTH_SHORT
-                        ).show()
-                    }
-                })
+    private fun initializeRecyclerView() {
+        recyclerView.adapter = RecyclerViewAdapter().apply {
+            submitList(getInitialList())
+            onItemClickListener = { showMessage(event) }
+        }
+        recyclerView.addItemDecoration(RecyclerItemDecoration())
+        recyclerView.layoutManager = CircularLayoutManager(
+            resources.getDimension(R.dimen.circular_list_radius),
+            resources.getDimension(R.dimen.circular_list_center_x)
         )
-        scrollWheel!!.recyclerView = recyclerView
-        scrollWheel!!.isScrollWheelEnabled = false
-        scrollWheel!!.isHighlightTouchAreaEnabled = false
-        //scrollWheel.setConsumeTouchOutsideTouchAreaEnabled(false);
-//        scrollWheel.setTouchAreaThickness(50);
-        scrollWheel!!.setOnItemClickListener(object :
-            OnItemClickListener {
-            override fun onItemClick(
-                scrollWheel: ScrollWheel?,
-                childIndex: Int
-            ) {
-                Toast.makeText(
-                    this@MainActivity,
-                    "OC " + (scrollWheel!!.recyclerView!!
-                        .getChildAt(childIndex)
-                        .findViewById<View>(R.id.event) as TextView).text,
-                    Toast.LENGTH_SHORT
-                ).show()
-            }
-
-            override fun onItemLongClick(
-                scrollWheel: ScrollWheel?,
-                childIndex: Int
-            ) {
-                Toast.makeText(
-                    this@MainActivity,
-                    "OLC " + (scrollWheel!!.recyclerView!!
-                        .getChildAt(childIndex)
-                        .findViewById<View>(R.id.event) as TextView).text,
-                    Toast.LENGTH_SHORT
-                ).show()
-            }
-        })
-        addItemButton!!.setOnClickListener(this)
-        scrollWheelToggleButton!!.setOnClickListener(this)
     }
 
-    private fun initializeList() {
-        list = ArrayList()
-        (0..9).forEach {
-            val model = Model("Event ${it + 1}", "12:00am - 12:00pm")
-            list!!.add(model)
+    private fun initializeScrollWheel() {
+        scrollWheel.isEnabled = false
+        scrollWheel.isHighlightTouchAreaEnabled = false
+//        scrollWheel.isHandleClicksEnabled = false
+        scrollWheel.onItemClickListener = { x, y ->
+            val index = recyclerView.getChildAdapterPosition(x, y)
+            if (index != INVALID_INDEX) showMessage("OC " + getList()[index].event)
+        }
+        scrollWheel.onItemLongClickListener = { x, y ->
+            val index = recyclerView.getChildAdapterPosition(x, y)
+            if (index != INVALID_INDEX) showMessage("OLC " + getList()[index].event)
+        }
+        scrollWheel.onScrollListener = { recyclerView.scrollBy(0, it.toInt()) }
+        scrollWheel.onFlingListener = { recyclerView.fling(0, it.toInt()) }
+        scrollWheel.onTouchReleasedListener = {
+            (recyclerView!!.layoutManager as CircularLayoutManager).stabilize()
         }
     }
 
-    override fun onClick(v: View) {
-        when (v.id) {
-            R.id.add_item_button -> {
-                val model = Model("Event ${1 + list!!.size}", "12:00am - 12:00pm")
-                list!!.add(model)
-                recyclerView!!.adapter!!.notifyItemChanged(list!!.size - 2)
-                recyclerView!!.adapter!!.notifyItemInserted(list!!.size - 1)
-            }
-            R.id.scroll_wheel_toggle_button -> {
-                scrollWheel!!.isScrollWheelEnabled = !scrollWheel!!.isScrollWheelEnabled
-                scrollWheel!!.isHighlightTouchAreaEnabled =
-                    !scrollWheel!!.isHighlightTouchAreaEnabled
-            }
+    private fun addItemToList() {
+        (recyclerView.adapter as RecyclerViewAdapter).apply {
+            submitList(currentList.toMutableList().apply {
+                add(Model(size + 1, "Event ${size + 1}", "12:00am - 12:00pm"))
+            })
         }
     }
+
+    private fun toggleScrollWheel() {
+        scrollWheel!!.isEnabled = !scrollWheel!!.isEnabled
+        scrollWheel!!.isHighlightTouchAreaEnabled = !scrollWheel!!.isHighlightTouchAreaEnabled
+    }
+
+    private fun getInitialList() = (1..10).map { Model(it, "Event $it", "12:00am - 12:00pm") }
+
+    private fun getList() = (recyclerView.adapter as RecyclerViewAdapter).currentList
+
+    private fun showMessage(msg: String) =
+        Toast.makeText(this@MainActivity, msg, Toast.LENGTH_SHORT).show()
 }

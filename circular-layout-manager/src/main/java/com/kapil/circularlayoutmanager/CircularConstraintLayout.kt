@@ -1,10 +1,9 @@
 package com.kapil.circularlayoutmanager
 
-import android.annotation.TargetApi
 import android.content.Context
 import android.graphics.Canvas
 import android.graphics.Path
-import android.os.Build
+import android.graphics.RectF
 import android.util.AttributeSet
 import androidx.constraintlayout.widget.ConstraintLayout
 
@@ -29,8 +28,6 @@ class CircularConstraintLayout @JvmOverloads constructor(
         NONE
     }
 
-    private var ovalPath: Path = Path()
-
     /**
      * Sets primary dimension of the view so that it's value can be set to the other dimension of
      * the layout.
@@ -51,27 +48,37 @@ class CircularConstraintLayout @JvmOverloads constructor(
      */
     var primaryDimension: PrimaryDimension = PrimaryDimension.WIDTH
 
+    private val ovalPath: Path = Path()
+    private val ovalRect: RectF = RectF()
+
     init {
         setWillNotDraw(false)
+
+        context.theme.obtainStyledAttributes(attrs, R.styleable.CircularConstraintLayout, 0, 0)
+            .apply {
+                primaryDimension = PrimaryDimension.values()[getInt(
+                    R.styleable.CircularConstraintLayout_primaryDimension,
+                    PrimaryDimension.WIDTH.ordinal
+                )]
+                recycle()
+            }
     }
 
-    @TargetApi(Build.VERSION_CODES.LOLLIPOP)
     override fun onMeasure(widthMeasureSpec: Int, heightMeasureSpec: Int) {
         super.onMeasure(widthMeasureSpec, heightMeasureSpec)
         when (primaryDimension) {
             PrimaryDimension.WIDTH -> layoutParams.height = measuredWidth
             PrimaryDimension.HEIGHT -> layoutParams.width = measuredHeight
-            PrimaryDimension.NONE -> {}
+            PrimaryDimension.NONE -> {
+                // do nothing
+            }
         }
-        ovalPath.reset()
-        ovalPath.addOval(
-            0f,
-            0f,
-            measuredWidth.toFloat(),
-            measuredHeight.toFloat(),
-            Path.Direction.CW
-        )
-        ovalPath.close()
+        ovalRect.set(0f, 0f, measuredWidth.toFloat(), measuredHeight.toFloat())
+        ovalPath.apply {
+            reset()
+            addOval(ovalRect, Path.Direction.CW)
+            close()
+        }
     }
 
     override fun onDraw(canvas: Canvas) {

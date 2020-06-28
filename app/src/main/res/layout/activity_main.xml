@@ -13,7 +13,8 @@
         android:layout_width="match_parent"
         android:layout_height="0dp"
         android:layout_gravity="center"
-        android:background="@drawable/circular_list_bg">
+        android:background="@drawable/circular_list_bg"
+        app:primaryDimension="width">
 
         <TextView
             android:layout_width="wrap_content"
@@ -27,7 +28,7 @@
             app:layout_constraintTop_toTopOf="parent" />
 
         <androidx.recyclerview.widget.RecyclerView
-            android:id="@+id/recycler_view"
+            android:id="@+id/recyclerView"
             android:layout_width="0dp"
             android:layout_height="0dp"
             app:layout_constraintBottom_toBottomOf="parent"
@@ -36,16 +37,19 @@
             app:layout_constraintTop_toTopOf="parent" />
 
         <com.kapil.circularlayoutmanager.ScrollWheel
-            android:id="@+id/scroll_wheel"
+            android:id="@+id/scrollWheel"
             android:layout_width="0dp"
             android:layout_height="0dp"
+            app:isHandleClicksEnabled="true"
             app:layout_constraintBottom_toBottomOf="parent"
             app:layout_constraintEnd_toEndOf="parent"
             app:layout_constraintStart_toStartOf="parent"
-            app:layout_constraintTop_toTopOf="parent" />
+            app:layout_constraintTop_toTopOf="parent"
+            app:touchAreaColor="@color/default_touch_area_color"
+            app:touchAreaThickness="@dimen/default_touch_area_thickness" />
 
         <com.google.android.material.floatingactionbutton.FloatingActionButton
-            android:id="@+id/add_item_button"
+            android:id="@+id/addItemButton"
             android:layout_width="wrap_content"
             android:layout_height="wrap_content"
             android:layout_margin="@dimen/margin_l"
@@ -57,7 +61,7 @@
     </com.kapil.circularlayoutmanager.CircularConstraintLayout>
 
     <com.google.android.material.floatingactionbutton.FloatingActionButton
-        android:id="@+id/scroll_wheel_toggle_button"
+        android:id="@+id/scrollWheelToggleButton"
         android:layout_width="wrap_content"
         android:layout_height="wrap_content"
         android:layout_gravity="bottom|end"

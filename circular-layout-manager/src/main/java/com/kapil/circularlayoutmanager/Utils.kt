@@ -1,20 +1,17 @@
 package com.kapil.circularlayoutmanager
 
-import android.content.Context
-import android.util.TypedValue
+import androidx.recyclerview.widget.RecyclerView
+
+
+const val INVALID_INDEX = -1
 
 /**
- * This class contains utility helper functions.
+ * Detects the adapter list item under a particular point.
+ *
+ * @param x X-coordinate of point.
+ * @param y Y-coordinate of point.
+ * @return child adapter position if it is found under the point or [INVALID_INDEX] if there is
+ * no child view found under the point.
  */
-object Utils {
-    /**
-     * Function to convert a value given in dp to pixels (px).
-     *
-     * @param context Current context, used to access resources.
-     * @param dp The value (in dp) to be converted.
-     *
-     * @return The value in pixels.
-     */
-    fun dpToPx(context: Context, dp: Float) =
-        TypedValue.applyDimension(TypedValue.COMPLEX_UNIT_DIP, dp, context.resources.displayMetrics)
-}
+fun RecyclerView.getChildAdapterPosition(x: Float, y: Float) =
+    findChildViewUnder(x, y)?.let { getChildAdapterPosition(it) } ?: INVALID_INDEX
