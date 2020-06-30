@@ -1,6 +1,8 @@
 package com.kapil.circularlayoutmanager
 
 import android.graphics.PointF
+import android.os.Bundle
+import android.os.Parcelable
 import android.util.Log
 import android.view.View
 import androidx.recyclerview.widget.LinearSmoothScroller
@@ -12,14 +14,22 @@ import kotlin.math.sqrt
 
 class CircularLayoutManagerNew : RecyclerView.LayoutManager, ScrollVectorProvider {
 
+    companion object {
+        private val TAG = CircularLayoutManagerNew::class.simpleName
+
+        private const val FILL_START_POSITION = "FILL_START_POSITION"
+        private const val FIRST_CHILD_TOP_OFFSET = "FIRST_CHILD_TOP_OFFSET"
+    }
+
     private var xRadius: Float
     private var yRadius: Float
     private var centerX: Float
 
+    // The two fields below are the only parameters needed to define the scroll state.
     private var fillStartPosition = 0
     private var firstChildTopOffset = 0
 
-    private var scrollToPositionCalled = false
+    private var isFirstChildParametersManuallyUpdated = false
 
     /**
      * Creates a circular layout manager.
@@ -40,7 +50,6 @@ class CircularLayoutManagerNew : RecyclerView.LayoutManager, ScrollVectorProvide
         this.xRadius = xRadius
         this.yRadius = yRadius
         this.centerX = centerX
-        logIt("init xR $xRadius yR $yRadius cX $centerX")
     }
 
     /**
@@ -69,7 +78,7 @@ class CircularLayoutManagerNew : RecyclerView.LayoutManager, ScrollVectorProvide
      *
      * This field has NO relevance when user action is involved in scrolling.
      *
-     * When set to false, the view, associated with the position passed to the method, appears at
+     * When set to false, the view associated with the position passed to the method appears at
      * the top.
      */
     var shouldCenterAfterScrollToPosition = true
@@ -80,10 +89,101 @@ class CircularLayoutManagerNew : RecyclerView.LayoutManager, ScrollVectorProvide
     )
 
     override fun onLayoutChildren(recycler: RecyclerView.Recycler, state: RecyclerView.State) {
+        logIt("onLayoutChildren")
         adjustGapsIfProgrammaticallyScrolled(recycler)
         fill(recycler)
     }
 
+    override fun canScrollVertically() = true
+
+    override fun scrollVerticallyBy(
+        dy: Int,
+        recycler: RecyclerView.Recycler,
+        state: RecyclerView.State
+    ): Int {
+        if (childCount == 0) return 0
+        val scrolled = determineActualScroll(dy)
+        offsetChildrenVertical(-scrolled)
+        calculateFirstChildPlacement(recycler)
+        fill(recycler)
+        return scrolled
+    }
+
+    override fun scrollToPosition(position: Int) {
+        if (position in 0 until itemCount) {
+            fillStartPosition = position
+            firstChildTopOffset = 0
+            isFirstChildParametersManuallyUpdated = true
+            requestLayout()
+        } else {
+            Log.e(TAG, "scrollToPosition: Index: $position, Size: $itemCount")
+        }
+    }
+
+    override fun smoothScrollToPosition(
+        recyclerView: RecyclerView,
+        state: RecyclerView.State,
+        position: Int
+    ) {
+        if (position in 0 until itemCount) {
+            object : LinearSmoothScroller(recyclerView.context) {
+                override fun calculateDtToFit(
+                    viewStart: Int,
+                    viewEnd: Int,
+                    boxStart: Int,
+                    boxEnd: Int,
+                    snapPreference: Int
+                ): Int {
+                    return if (shouldCenterAfterScrollToPosition) {
+                        ((boxStart + boxEnd) / 2) - ((viewStart + viewEnd) / 2)
+                    } else {
+                        super.calculateDtToFit(viewStart, viewEnd, boxStart, boxEnd, snapPreference)
+                    }
+                }
+            }.apply {
+                targetPosition = position
+                startSmoothScroll(this)
+            }
+        } else {
+            Log.e(TAG, "smoothScrollToPosition: Index: $position, Size: $itemCount")
+        }
+    }
+
+    override fun computeScrollVectorForPosition(targetPosition: Int) =
+        PointF(0f, (targetPosition - fillStartPosition).toFloat())
+
+    override fun onAdapterChanged(
+        oldAdapter: RecyclerView.Adapter<*>?,
+        newAdapter: RecyclerView.Adapter<*>?
+    ) {
+        super.onAdapterChanged(oldAdapter, newAdapter)
+        removeAllViews()
+        clearScrollState()
+    }
+
+    override fun onSaveInstanceState(): Parcelable = Bundle().apply {
+        putInt(FILL_START_POSITION, fillStartPosition)
+        putInt(FIRST_CHILD_TOP_OFFSET, firstChildTopOffset)
+    }
+
+    override fun onRestoreInstanceState(state: Parcelable?) {
+        (state as? Bundle)?.let {
+            fillStartPosition = it.getInt(FILL_START_POSITION)
+            firstChildTopOffset = it.getInt(FIRST_CHILD_TOP_OFFSET)
+        }
+    }
+
+    /**
+     * This method is responsible to actually layout the child views based on the data obtained from
+     * the recycler and the layout manager.
+     *
+     * Steps:
+     * 1. Detaches and scraps all the attached views
+     * 2. Adds, measures, scales (if needed) and lays out all the relevant child views. It starts
+     *   based on the values [fillStartPosition] and [firstChildTopOffset] and stops when there is
+     *   no more space left to fill
+     * 3. Recycles the leftover views (if any) in the scrap list[RecyclerView.Recycler.getScrapList]
+     */
     private fun fill(recycler: RecyclerView.Recycler) {
         if (itemCount == 0) {
             removeAndRecycleAllViews(recycler)
@@ -119,71 +219,13 @@ class CircularLayoutManagerNew : RecyclerView.LayoutManager, ScrollVectorProvide
         recycler.scrapList.toList().forEach { recycler.recycleView(it.itemView) }
     }
 
-    override fun canScrollVertically() = true
-
-    override fun scrollVerticallyBy(
-        dy: Int,
-        recycler: RecyclerView.Recycler,
-        state: RecyclerView.State
-    ): Int {
-        if (childCount == 0) return 0
-        val scrolled = determineActualScroll(dy)
-        offsetChildrenVertical(-scrolled)
-        calculateFirstChildPlacementProperties(recycler)
-        fill(recycler)
-        return scrolled
-    }
-
-    override fun scrollToPosition(position: Int) {
-        if (position in 0 until itemCount) {
-            fillStartPosition = position
-            firstChildTopOffset = 0
-            scrollToPositionCalled = true
-            requestLayout()
-        } else {
-            throw IndexOutOfBoundsException("Index: $position, Size: $itemCount")
-        }
-    }
-
-    override fun smoothScrollToPosition(
-        recyclerView: RecyclerView,
-        state: RecyclerView.State,
-        position: Int
-    ) {
-        if (position in 0 until itemCount) {
-            object : LinearSmoothScroller(recyclerView.context) {
-                override fun calculateDtToFit(
-                    viewStart: Int,
-                    viewEnd: Int,
-                    boxStart: Int,
-                    boxEnd: Int,
-                    snapPreference: Int
-                ): Int {
-                    return if (shouldCenterAfterScrollToPosition) {
-                        ((boxStart + boxEnd) / 2) - ((viewStart + viewEnd) / 2)
-                    } else {
-                        super.calculateDtToFit(viewStart, viewEnd, boxStart, boxEnd, snapPreference)
-                    }
-                }
-            }.apply {
-                targetPosition = position
-                startSmoothScroll(this)
-            }
-        } else {
-            throw IndexOutOfBoundsException("Index: $position, Size: $itemCount")
-        }
-    }
-
-    override fun computeScrollVectorForPosition(targetPosition: Int) =
-        PointF(0f, (targetPosition - fillStartPosition).toFloat())
-
-    override fun onDetachedFromWindow(view: RecyclerView, recycler: RecyclerView.Recycler) {
-        super.onDetachedFromWindow(view, recycler)
-        removeAndRecycleAllViews(recycler)
-        recycler.clear()
-    }
-
-    private fun calculateFirstChildPlacementProperties(recycler: RecyclerView.Recycler) {
+    /**
+     * Calculates [fillStartPosition] and [firstChildTopOffset] to prepare for the fill usually
+     * after the child views have moved.
+     *
+     * @see scrollVerticallyBy
+     */
+    private fun calculateFirstChildPlacement(recycler: RecyclerView.Recycler) {
         // Find first visible view
         for (i in 0 until childCount) {
             val tmpChild = getChildAt(i)!!
@@ -197,8 +239,7 @@ class CircularLayoutManagerNew : RecyclerView.LayoutManager, ScrollVectorProvide
         while (firstChildTopOffset > 0) {
             fillStartPosition -= 1
             if (fillStartPosition < 0) {
-                fillStartPosition = 0
-                firstChildTopOffset = 0
+                clearScrollState()
                 break
             } else {
                 val tmpChild = recycler.getViewForPosition(fillStartPosition)
@@ -225,6 +266,9 @@ class CircularLayoutManagerNew : RecyclerView.LayoutManager, ScrollVectorProvide
         child.scaleY = scale
     }
 
+    /**
+     * @see shouldIgnoreHeaderAndFooterMargins
+     */
     private fun calculateLeftOffset(position: Int, child: View, childHeight: Int, tmpOffset: Int) =
         if (shouldIgnoreHeaderAndFooterMargins) {
             when (position) {
@@ -239,6 +283,14 @@ class CircularLayoutManagerNew : RecyclerView.LayoutManager, ScrollVectorProvide
             }
         } else calculateEllipseXFromY(tmpOffset + (childHeight / 2))
 
+    /**
+     * This method calculates the x-coordinate of an ellipse based on the y-coordinate provided.
+     *
+     * This method is only relevant in the context of the specific use case of this class.
+     *
+     * Note: y-coordinate supplied is allowed to be an illegal value which may out of bounds with
+     * respect to the imaginary ellipse.
+     */
     private fun calculateEllipseXFromY(y: Int): Int {
         val centerY = height / 2f
         val amount =
@@ -246,6 +298,11 @@ class CircularLayoutManagerNew : RecyclerView.LayoutManager, ScrollVectorProvide
         return if (amount >= 0) (sqrt(amount) + centerX).toInt() else (-sqrt(-amount) + centerX).toInt()
     }
 
+    /**
+     * This method is responsible to determine the amount by which the child views should be offset
+     * as a response to user scroll. It introduces boundary conditions and prevents the child views
+     * from being over-scrolled.
+     */
     private fun determineActualScroll(dy: Int): Int {
         val firstChild = getChildAt(0)!!
         val lastChild = getChildAt(childCount - 1)!!
@@ -258,8 +315,20 @@ class CircularLayoutManagerNew : RecyclerView.LayoutManager, ScrollVectorProvide
         }
     }
 
+    /**
+     * The fields [fillStartPosition] and [firstChildTopOffset] are never set arbitrarily. They are
+     * always updated based on some user action like in [scrollVerticallyBy]. There is no scope for
+     * any gaps in the layout if these values are only updated as a response to scrollVerticallyBy.
+     *
+     * @see determineActualScroll
+     *
+     * But in [scrollToPosition] these values can be indirectly set programmatically which may
+     * result in some gaps specially when views with first and last adapter positions are involved.
+     *
+     * This method adjusts fillStartPosition and firstChildTopOffset to eliminate potential gaps.
+     */
     private fun adjustGapsIfProgrammaticallyScrolled(recycler: RecyclerView.Recycler) {
-        if (scrollToPositionCalled) {
+        if (isFirstChildParametersManuallyUpdated) {
             if (shouldCenterAfterScrollToPosition) {
                 // If shouldCenterAfterScrollToPosition is true, readjust fillStartPosition
                 // Also, ensure there is no gap at the top
@@ -276,10 +345,7 @@ class CircularLayoutManagerNew : RecyclerView.LayoutManager, ScrollVectorProvide
                         break
                     }
                 }
-                if (topGap > 0) {
-                    fillStartPosition = 0
-                    firstChildTopOffset = 0
-                }
+                if (topGap > 0) clearScrollState()
             }
 
             if (fillStartPosition != 0) {
@@ -297,14 +363,22 @@ class CircularLayoutManagerNew : RecyclerView.LayoutManager, ScrollVectorProvide
                         break
                     }
                 }
-                if (bottomGap > 0) {
-                    fillStartPosition = 0
-                    firstChildTopOffset = 0
-                }
+                if (bottomGap > 0) clearScrollState()
             }
 
-            scrollToPositionCalled = false
+            isFirstChildParametersManuallyUpdated = false
         }
+    }
+
+    /**
+     * Clears the scroll state.
+     *
+     * In other words, the next call to [fill] will result in the layout starting from the adapter
+     * position 0.
+     */
+    private fun clearScrollState() {
+        fillStartPosition = 0
+        firstChildTopOffset = 0
     }
 
     private fun logIt(msg: String) = Log.e("BCBCBCBCBC", msg)

@@ -1,9 +1,9 @@
 package kapil.circularlayoutmanager
 
 import android.os.Bundle
+import android.util.Log
 import android.widget.Toast
 import androidx.appcompat.app.AppCompatActivity
-import androidx.recyclerview.widget.LinearLayoutManager
 import com.kapil.circularlayoutmanager.CircularLayoutManagerNew
 import com.kapil.circularlayoutmanager.INVALID_INDEX
 import com.kapil.circularlayoutmanager.getChildAdapterPosition
@@ -25,7 +25,13 @@ class MainActivity : AppCompatActivity() {
 
         addItemButton!!.setOnClickListener { addItemToList() }
         scrollWheelToggleButton!!.setOnClickListener {
-            recyclerView.smoothScrollToPosition(9)
+            recyclerView.adapter = RecyclerViewAdapter().apply {
+                val list = getInitialList().subList(0, 3)
+                Log.e("BCBCBCBCBC", "$list")
+                submitList(list)
+                onItemClickListener = { showMessage(event) }
+            }
+//            recyclerView.smoothScrollToPosition(-1)
 //            recyclerView.scrollToPosition(20)
 //            toggleScrollWheel()
         }
@@ -43,6 +49,7 @@ class MainActivity : AppCompatActivity() {
         ).apply {
             scalingFactor = 1f
             shouldIgnoreHeaderAndFooterMargins = true
+            shouldCenterAfterScrollToPosition = true
         }
 //        recyclerView.layoutManager = LinearLayoutManager(this)
     }
