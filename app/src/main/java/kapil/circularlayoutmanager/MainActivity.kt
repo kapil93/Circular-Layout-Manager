@@ -3,7 +3,7 @@ package kapil.circularlayoutmanager
 import android.os.Bundle
 import android.widget.Toast
 import androidx.appcompat.app.AppCompatActivity
-import com.kapil.circularlayoutmanager.CircularLayoutManager
+import com.kapil.circularlayoutmanager.CircularLayoutManagerNew
 import com.kapil.circularlayoutmanager.INVALID_INDEX
 import com.kapil.circularlayoutmanager.getChildAdapterPosition
 import kotlinx.android.synthetic.main.activity_main.*
@@ -23,7 +23,10 @@ class MainActivity : AppCompatActivity() {
         initializeScrollWheel()
 
         addItemButton!!.setOnClickListener { addItemToList() }
-        scrollWheelToggleButton!!.setOnClickListener { toggleScrollWheel() }
+        scrollWheelToggleButton!!.setOnClickListener {
+            recyclerView.scrollToPosition(4)
+//            toggleScrollWheel()
+        }
     }
 
     private fun initializeRecyclerView() {
@@ -32,10 +35,10 @@ class MainActivity : AppCompatActivity() {
             onItemClickListener = { showMessage(event) }
         }
         recyclerView.addItemDecoration(RecyclerItemDecoration())
-        recyclerView.layoutManager = CircularLayoutManager(
+        recyclerView.layoutManager = CircularLayoutManagerNew(
             resources.getDimension(R.dimen.circular_list_radius),
             resources.getDimension(R.dimen.circular_list_center_x)
-        )
+        ).apply { shouldIgnoreHeaderAndFooterMargins = true }
     }
 
     private fun initializeScrollWheel() {
@@ -53,7 +56,7 @@ class MainActivity : AppCompatActivity() {
         scrollWheel.onScrollListener = { recyclerView.scrollBy(0, it.toInt()) }
         scrollWheel.onFlingListener = { recyclerView.fling(0, it.toInt()) }
         scrollWheel.onTouchReleasedListener = {
-            (recyclerView!!.layoutManager as CircularLayoutManager).stabilize()
+//            (recyclerView!!.layoutManager as CircularLayoutManager).stabilize()
         }
     }
 
@@ -61,7 +64,7 @@ class MainActivity : AppCompatActivity() {
         (recyclerView.adapter as RecyclerViewAdapter).apply {
             submitList(currentList.toMutableList().apply {
                 add(Model(size + 1, "Event ${size + 1}", "12:00am - 12:00pm"))
-            })
+            }) { recyclerView.invalidateItemDecorations() }
         }
     }
 

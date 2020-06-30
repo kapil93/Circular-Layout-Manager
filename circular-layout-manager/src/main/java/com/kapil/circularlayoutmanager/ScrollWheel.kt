@@ -9,6 +9,7 @@ import android.view.GestureDetector
 import android.view.MotionEvent
 import android.view.View
 import androidx.annotation.ColorInt
+import androidx.annotation.Px
 import androidx.core.content.ContextCompat
 import kotlin.math.min
 
@@ -48,6 +49,7 @@ class ScrollWheel @JvmOverloads constructor(
      */
     var isHandleClicksEnabled: Boolean = true
 
+    @Px
     var touchAreaThickness =
         context.resources.getDimension(R.dimen.default_touch_area_thickness)
         set(value) {

@@ -10,6 +10,7 @@ import kotlin.math.sqrt
  * This is a custom layout manager for recycler view which displays list items in a circular or
  * elliptical fashion.
  */
+@Deprecated("use CircularLayoutManagerNew")
 class CircularLayoutManager : RecyclerView.LayoutManager {
 
     enum class Path {
@@ -56,12 +57,10 @@ class CircularLayoutManager : RecyclerView.LayoutManager {
         layoutPath = Path.ELLIPSE
     }
 
-    override fun generateDefaultLayoutParams(): RecyclerView.LayoutParams {
-        return RecyclerView.LayoutParams(
-            RecyclerView.LayoutParams.WRAP_CONTENT,
-            RecyclerView.LayoutParams.WRAP_CONTENT
-        )
-    }
+    override fun generateDefaultLayoutParams() = RecyclerView.LayoutParams(
+        RecyclerView.LayoutParams.WRAP_CONTENT,
+        RecyclerView.LayoutParams.WRAP_CONTENT
+    )
 
     override fun onAttachedToWindow(view: RecyclerView) {
         super.onAttachedToWindow(view)
@@ -79,7 +78,7 @@ class CircularLayoutManager : RecyclerView.LayoutManager {
 
     override fun onLayoutChildren(recycler: RecyclerView.Recycler, state: RecyclerView.State) {
         if (itemCount == 0) {
-            detachAndScrapAttachedViews(recycler)
+            removeAndRecycleAllViews(recycler)
             return
         }
         if (recyclerBounds == null) {
@@ -100,13 +99,9 @@ class CircularLayoutManager : RecyclerView.LayoutManager {
      * @param recycler         Recycler, for detaching, scraping and recycling of child views.
      */
     private fun fill(indexToStartFill: Int, recycler: RecyclerView.Recycler) {
-        var indexToStartFill = indexToStartFill
-        if (indexToStartFill < 0) {
-            indexToStartFill = 0
-        }
         var childTop = topOfFirstChild
         detachAndScrapAttachedViews(recycler)
-        for (i in indexToStartFill until itemCount) {
+        for (i in (indexToStartFill.takeIf { it >= 0 } ?: 0) until itemCount) {
             val child = recycler.getViewForPosition(i)
             measureChildWithMargins(child, 0, 0)
             val sumOfHorizontalMargins =
@@ -129,8 +124,7 @@ class CircularLayoutManager : RecyclerView.LayoutManager {
                     recyclerBounds!!.left + childLeft, recyclerBounds!!.top + childTop,
                     recyclerBounds!!.left + childLeft + getDecoratedMeasuredWidth(child) + sumOfHorizontalMargins,
                     recyclerBounds!!.top + childTop + getDecoratedMeasuredHeight(child) + sumOfVerticalMargins
-                )
-                        || recyclerBounds!!.contains(
+                ) || recyclerBounds!!.contains(
                     recyclerBounds!!.left + childLeft, recyclerBounds!!.top + childTop,
                     recyclerBounds!!.left + childLeft + getDecoratedMeasuredWidth(child) + sumOfHorizontalMargins,
                     recyclerBounds!!.top + childTop + getDecoratedMeasuredHeight(child) + sumOfVerticalMargins
@@ -143,25 +137,21 @@ class CircularLayoutManager : RecyclerView.LayoutManager {
                 child,
                 childLeft,
                 childTop,
-                childLeft + getDecoratedMeasuredWidth(child)
-                        + sumOfHorizontalMargins,
+                childLeft + getDecoratedMeasuredWidth(child) + sumOfHorizontalMargins,
                 childTop + getDecoratedMeasuredHeight(child) + sumOfVerticalMargins
             )
             getDecoratedBoundsWithMargins(child, childDecoratedBoundsWithMargin!!)
             scaleChild(child)
             childTop += childDecoratedBoundsWithMargin!!.height()
         }
-//        recycler.scrapList.forEach { recycler.recycleView(it.itemView) }
-        recycler.clear()
+        recycler.scrapList.toList().forEach { recycler.recycleView(it.itemView) }
 
         if (!scrolled) {
             stabilize()
         }
     }
 
-    override fun canScrollVertically(): Boolean {
-        return true
-    }
+    override fun canScrollVertically() = true
 
     override fun onScrollStateChanged(state: Int) {
         if (state == RecyclerView.SCROLL_STATE_IDLE) {
