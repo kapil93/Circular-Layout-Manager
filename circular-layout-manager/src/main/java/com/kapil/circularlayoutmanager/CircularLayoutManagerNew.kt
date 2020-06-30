@@ -1,19 +1,25 @@
 package com.kapil.circularlayoutmanager
 
+import android.graphics.PointF
 import android.util.Log
 import android.view.View
+import androidx.recyclerview.widget.LinearSmoothScroller
 import androidx.recyclerview.widget.RecyclerView
+import androidx.recyclerview.widget.RecyclerView.SmoothScroller.ScrollVectorProvider
 import kotlin.math.abs
 import kotlin.math.sqrt
 
 
-class CircularLayoutManagerNew : RecyclerView.LayoutManager {
+class CircularLayoutManagerNew : RecyclerView.LayoutManager, ScrollVectorProvider {
 
     private var xRadius: Float
     private var yRadius: Float
     private var centerX: Float
 
     private var fillStartPosition = 0
+    private var firstChildTopOffset = 0
+
+    private var scrollToPositionCalled = false
 
     /**
      * Creates a circular layout manager.
@@ -52,7 +58,21 @@ class CircularLayoutManagerNew : RecyclerView.LayoutManager {
      *
      * Set this value to 0.0 if no scaling is desired.
      */
-    var scalingFactor = 1f
+    var scalingFactor = 0f
+
+    /**
+     * This value determines whether the call to [RecyclerView.scrollToPosition] and in turn the
+     * call to [CircularLayoutManagerNew.scrollToPosition] or the call to
+     * [RecyclerView.smoothScrollToPosition] and in turn the call to
+     * [CircularLayoutManagerNew.smoothScrollToPosition] makes the view, associated with position
+     * passed, to appear in the center or not.
+     *
+     * This field has NO relevance when user action is involved in scrolling.
+     *
+     * When set to false, the view, associated with the position passed to the method, appears at
+     * the top.
+     */
+    var shouldCenterAfterScrollToPosition = true
 
     override fun generateDefaultLayoutParams() = RecyclerView.LayoutParams(
         RecyclerView.LayoutParams.WRAP_CONTENT,
@@ -60,48 +80,21 @@ class CircularLayoutManagerNew : RecyclerView.LayoutManager {
     )
 
     override fun onLayoutChildren(recycler: RecyclerView.Recycler, state: RecyclerView.State) {
-        logIt("onLayoutChildren")
+        adjustGapsIfProgrammaticallyScrolled(recycler)
         fill(recycler)
     }
 
     private fun fill(recycler: RecyclerView.Recycler) {
         if (itemCount == 0) {
-            logIt("fill itemCount 0")
             removeAndRecycleAllViews(recycler)
             return
         }
 
-        // Initial values in case there are no child views attached
-        var tmpOffset = 0
-
-        // Find first visible view
-        for (i in 0 until childCount) {
-            val tmpChild = getChildAt(i)!!
-            if (getDecoratedBottom(tmpChild) > 0) {
-                tmpOffset = getDecoratedTop(tmpChild)
-                fillStartPosition = getPosition(tmpChild)
-                break
-            }
-        }
-
-        // Find position from which filling of gap should be started
-        while (tmpOffset > 0) {
-            fillStartPosition -= 1
-            if (fillStartPosition < 0) {
-                fillStartPosition = 0
-                tmpOffset = 0
-                break
-            } else {
-                val tmpChild = recycler.getViewForPosition(fillStartPosition)
-                measureChildWithMargins(tmpChild, 0, 0)
-                tmpOffset -= getDecoratedMeasuredHeight(tmpChild)
-            }
-        }
+        var tmpOffset = firstChildTopOffset
 
         detachAndScrapAttachedViews(recycler)
 
         for (position in fillStartPosition until itemCount) {
-            logIt("fill loop $position")
             val child = recycler.getViewForPosition(position)
 
             addView(child)
@@ -133,23 +126,86 @@ class CircularLayoutManagerNew : RecyclerView.LayoutManager {
         recycler: RecyclerView.Recycler,
         state: RecyclerView.State
     ): Int {
-        logIt("scrollVerticallyBy $dy")
         if (childCount == 0) return 0
         val scrolled = determineActualScroll(dy)
         offsetChildrenVertical(-scrolled)
+        calculateFirstChildPlacementProperties(recycler)
         fill(recycler)
         return scrolled
     }
 
     override fun scrollToPosition(position: Int) {
-        fillStartPosition = position
-        requestLayout()
+        if (position in 0 until itemCount) {
+            fillStartPosition = position
+            firstChildTopOffset = 0
+            scrollToPositionCalled = true
+            requestLayout()
+        } else {
+            throw IndexOutOfBoundsException("Index: $position, Size: $itemCount")
+        }
     }
+
+    override fun smoothScrollToPosition(
+        recyclerView: RecyclerView,
+        state: RecyclerView.State,
+        position: Int
+    ) {
+        if (position in 0 until itemCount) {
+            object : LinearSmoothScroller(recyclerView.context) {
+                override fun calculateDtToFit(
+                    viewStart: Int,
+                    viewEnd: Int,
+                    boxStart: Int,
+                    boxEnd: Int,
+                    snapPreference: Int
+                ): Int {
+                    return if (shouldCenterAfterScrollToPosition) {
+                        ((boxStart + boxEnd) / 2) - ((viewStart + viewEnd) / 2)
+                    } else {
+                        super.calculateDtToFit(viewStart, viewEnd, boxStart, boxEnd, snapPreference)
+                    }
+                }
+            }.apply {
+                targetPosition = position
+                startSmoothScroll(this)
+            }
+        } else {
+            throw IndexOutOfBoundsException("Index: $position, Size: $itemCount")
+        }
+    }
+
+    override fun computeScrollVectorForPosition(targetPosition: Int) =
+        PointF(0f, (targetPosition - fillStartPosition).toFloat())
 
     override fun onDetachedFromWindow(view: RecyclerView, recycler: RecyclerView.Recycler) {
         super.onDetachedFromWindow(view, recycler)
         removeAndRecycleAllViews(recycler)
         recycler.clear()
+    }
+
+    private fun calculateFirstChildPlacementProperties(recycler: RecyclerView.Recycler) {
+        // Find first visible view
+        for (i in 0 until childCount) {
+            val tmpChild = getChildAt(i)!!
+            if (getDecoratedBottom(tmpChild) > 0) {
+                firstChildTopOffset = getDecoratedTop(tmpChild)
+                fillStartPosition = getPosition(tmpChild)
+                break
+            }
+        }
+        // Find position from which filling of gap should be started
+        while (firstChildTopOffset > 0) {
+            fillStartPosition -= 1
+            if (fillStartPosition < 0) {
+                fillStartPosition = 0
+                firstChildTopOffset = 0
+                break
+            } else {
+                val tmpChild = recycler.getViewForPosition(fillStartPosition)
+                measureChildWithMargins(tmpChild, 0, 0)
+                firstChildTopOffset -= getDecoratedMeasuredHeight(tmpChild)
+            }
+        }
     }
 
     /**
@@ -199,6 +255,55 @@ class CircularLayoutManagerNew : RecyclerView.LayoutManager {
             (dy > 0 && getPosition(lastChild) == itemCount - 1 && getDecoratedBottom(lastChild) - dy < height) ->
                 getDecoratedBottom(lastChild) - height
             else -> dy
+        }
+    }
+
+    private fun adjustGapsIfProgrammaticallyScrolled(recycler: RecyclerView.Recycler) {
+        if (scrollToPositionCalled) {
+            if (shouldCenterAfterScrollToPosition) {
+                // If shouldCenterAfterScrollToPosition is true, readjust fillStartPosition
+                // Also, ensure there is no gap at the top
+                val centerChild = recycler.getViewForPosition(fillStartPosition)
+                measureChildWithMargins(centerChild, 0, 0)
+                var topGap = (height / 2) - (getDecoratedMeasuredHeight(centerChild) / 2)
+                for (position in (fillStartPosition - 1) downTo 0) {
+                    val tmpChild = recycler.getViewForPosition(position)
+                    measureChildWithMargins(tmpChild, 0, 0)
+                    topGap -= getDecoratedMeasuredHeight(tmpChild)
+                    if (topGap <= 0) {
+                        fillStartPosition = position
+                        firstChildTopOffset = topGap
+                        break
+                    }
+                }
+                if (topGap > 0) {
+                    fillStartPosition = 0
+                    firstChildTopOffset = 0
+                }
+            }
+
+            if (fillStartPosition != 0) {
+                // Ensure there is no gap at the bottom
+                var bottomGap = height
+                for (position in (itemCount - 1) downTo 0) {
+                    val tmpChild = recycler.getViewForPosition(position)
+                    measureChildWithMargins(tmpChild, 0, 0)
+                    bottomGap -= getDecoratedMeasuredHeight(tmpChild)
+                    if (bottomGap <= 0) {
+                        if ((position < fillStartPosition) || (position == fillStartPosition && bottomGap > firstChildTopOffset)) {
+                            fillStartPosition = position
+                            firstChildTopOffset = bottomGap
+                        }
+                        break
+                    }
+                }
+                if (bottomGap > 0) {
+                    fillStartPosition = 0
+                    firstChildTopOffset = 0
+                }
+            }
+
+            scrollToPositionCalled = false
         }
     }
 

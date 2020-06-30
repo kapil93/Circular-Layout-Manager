@@ -3,6 +3,7 @@ package kapil.circularlayoutmanager
 import android.os.Bundle
 import android.widget.Toast
 import androidx.appcompat.app.AppCompatActivity
+import androidx.recyclerview.widget.LinearLayoutManager
 import com.kapil.circularlayoutmanager.CircularLayoutManagerNew
 import com.kapil.circularlayoutmanager.INVALID_INDEX
 import com.kapil.circularlayoutmanager.getChildAdapterPosition
@@ -24,7 +25,8 @@ class MainActivity : AppCompatActivity() {
 
         addItemButton!!.setOnClickListener { addItemToList() }
         scrollWheelToggleButton!!.setOnClickListener {
-            recyclerView.scrollToPosition(4)
+            recyclerView.smoothScrollToPosition(9)
+//            recyclerView.scrollToPosition(20)
 //            toggleScrollWheel()
         }
     }
@@ -38,7 +40,11 @@ class MainActivity : AppCompatActivity() {
         recyclerView.layoutManager = CircularLayoutManagerNew(
             resources.getDimension(R.dimen.circular_list_radius),
             resources.getDimension(R.dimen.circular_list_center_x)
-        ).apply { shouldIgnoreHeaderAndFooterMargins = true }
+        ).apply {
+            scalingFactor = 1f
+            shouldIgnoreHeaderAndFooterMargins = true
+        }
+//        recyclerView.layoutManager = LinearLayoutManager(this)
     }
 
     private fun initializeScrollWheel() {
@@ -47,11 +53,11 @@ class MainActivity : AppCompatActivity() {
 //        scrollWheel.isHandleClicksEnabled = false
         scrollWheel.onItemClickListener = { x, y ->
             val index = recyclerView.getChildAdapterPosition(x, y)
-            if (index != INVALID_INDEX) showMessage("OC " + getList()[index].event)
+            if (index != INVALID_INDEX) showMessage("onClick " + getList()[index].event)
         }
         scrollWheel.onItemLongClickListener = { x, y ->
             val index = recyclerView.getChildAdapterPosition(x, y)
-            if (index != INVALID_INDEX) showMessage("OLC " + getList()[index].event)
+            if (index != INVALID_INDEX) showMessage("onLongClick " + getList()[index].event)
         }
         scrollWheel.onScrollListener = { recyclerView.scrollBy(0, it.toInt()) }
         scrollWheel.onFlingListener = { recyclerView.fling(0, it.toInt()) }
