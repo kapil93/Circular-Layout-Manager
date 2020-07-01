@@ -1,8 +1,11 @@
 package com.kapil.circularlayoutmanager
 
+import android.content.Context
+import android.content.res.TypedArray
 import android.graphics.PointF
 import android.os.Bundle
 import android.os.Parcelable
+import android.util.AttributeSet
 import android.util.Log
 import android.view.View
 import androidx.recyclerview.widget.LinearSmoothScroller
@@ -11,7 +14,12 @@ import androidx.recyclerview.widget.RecyclerView.SmoothScroller.ScrollVectorProv
 import kotlin.math.abs
 import kotlin.math.sqrt
 
-
+/**
+ * This is a custom layout manager for recycler view which displays list items in a circular or
+ * elliptical fashion.
+ *
+ * @see <a href="https://github.com/kapil93/Circular-Layout-Manager">Github Page</a>
+ */
 class CircularLayoutManagerNew : RecyclerView.LayoutManager, ScrollVectorProvider {
 
     companion object {
@@ -23,16 +31,65 @@ class CircularLayoutManagerNew : RecyclerView.LayoutManager, ScrollVectorProvide
 
     private var xRadius: Float
     private var yRadius: Float
-    private var centerX: Float
+    private var xCenter: Float
 
     // The two fields below are the only parameters needed to define the scroll state.
     private var fillStartPosition = 0
     private var firstChildTopOffset = 0
 
-    private var isFirstChildParametersManuallyUpdated = false
+    private var isFirstChildParametersProgrammaticallyUpdated = false
+
+    /**
+     * This constructor is called by the [RecyclerView] when the name of this layout manager is
+     * passed as an XML attribute to the recycler view.
+     *
+     * For the purpose of instantiating this layout manager, radius and xCenter OR xRadius, yRadius
+     * and xCenter should also be passed as XML attributes to the same recycler view depending on
+     * whether a circular or an elliptical layout manager is desired respectively.
+     */
+    constructor(
+        context: Context,
+        attrs: AttributeSet? = null,
+        defStyleAttr: Int = 0,
+        defStyleRes: Int = 0
+    ) {
+        val a = context.obtainStyledAttributes(
+            attrs, R.styleable.RecyclerView, defStyleAttr, defStyleRes
+        )
+        when {
+            areAttrsForCircleAvailable(a) -> {
+                xRadius = a.getDimension(R.styleable.RecyclerView_radius, 0f)
+                yRadius = a.getDimension(R.styleable.RecyclerView_radius, 0f)
+                xCenter = a.getDimension(R.styleable.RecyclerView_xCenter, 0f)
+            }
+            areAttrsForEllipseAvailable(a) -> {
+                xRadius = a.getDimension(R.styleable.RecyclerView_xRadius, 0f)
+                yRadius = a.getDimension(R.styleable.RecyclerView_yRadius, 0f)
+                xCenter = a.getDimension(R.styleable.RecyclerView_xCenter, 0f)
+            }
+            else -> {
+                throw InstantiationException(
+                    "All the necessary attributes need to be supplied. " +
+                            "For circle: radius and xCenter OR For ellipse: xRadius, yRadius and xCenter"
+                )
+            }
+        }
+        scalingFactor = a.getFloat(R.styleable.RecyclerView_scalingFactor, 0f)
+        shouldIgnoreHeaderAndFooterMargins = a.getBoolean(
+            R.styleable.RecyclerView_shouldIgnoreHeaderAndFooterMargins,
+            false
+        )
+        shouldCenterIfProgrammaticallyScrolled = a.getBoolean(
+            R.styleable.RecyclerView_shouldCenterIfProgrammaticallyScrolled,
+            true
+        )
+        a.recycle()
+    }
 
     /**
      * Creates a circular layout manager.
+     *
+     * Calls the constructor for ellipse as circle is also an ellipse with eccentricity = 1.
      *
      * @param radius  Radius of the imaginary circle in dp.
      * @param centerX X-coordinate of center of the imaginary circle in dp.
@@ -44,12 +101,12 @@ class CircularLayoutManagerNew : RecyclerView.LayoutManager, ScrollVectorProvide
      *
      * @param xRadius Radius of the imaginary ellipse along X-axis in dp.
      * @param yRadius Radius of the imaginary ellipse along Y-axis in dp.
-     * @param centerX X-coordinate of center of the imaginary ellipse in dp.
+     * @param xCenter X-coordinate of center of the imaginary ellipse in dp.
      */
-    constructor(xRadius: Float, yRadius: Float, centerX: Float) {
+    constructor(xRadius: Float, yRadius: Float, xCenter: Float) {
         this.xRadius = xRadius
         this.yRadius = yRadius
-        this.centerX = centerX
+        this.xCenter = xCenter
     }
 
     /**
@@ -81,7 +138,7 @@ class CircularLayoutManagerNew : RecyclerView.LayoutManager, ScrollVectorProvide
      * When set to false, the view associated with the position passed to the method appears at
      * the top.
      */
-    var shouldCenterAfterScrollToPosition = true
+    var shouldCenterIfProgrammaticallyScrolled = true
 
     override fun generateDefaultLayoutParams() = RecyclerView.LayoutParams(
         RecyclerView.LayoutParams.WRAP_CONTENT,
@@ -113,7 +170,7 @@ class CircularLayoutManagerNew : RecyclerView.LayoutManager, ScrollVectorProvide
         if (position in 0 until itemCount) {
             fillStartPosition = position
             firstChildTopOffset = 0
-            isFirstChildParametersManuallyUpdated = true
+            isFirstChildParametersProgrammaticallyUpdated = true
             requestLayout()
         } else {
             Log.e(TAG, "scrollToPosition: Index: $position, Size: $itemCount")
@@ -134,7 +191,7 @@ class CircularLayoutManagerNew : RecyclerView.LayoutManager, ScrollVectorProvide
                     boxEnd: Int,
                     snapPreference: Int
                 ): Int {
-                    return if (shouldCenterAfterScrollToPosition) {
+                    return if (shouldCenterIfProgrammaticallyScrolled) {
                         ((boxStart + boxEnd) / 2) - ((viewStart + viewEnd) / 2)
                     } else {
                         super.calculateDtToFit(viewStart, viewEnd, boxStart, boxEnd, snapPreference)
@@ -292,10 +349,10 @@ class CircularLayoutManagerNew : RecyclerView.LayoutManager, ScrollVectorProvide
      * respect to the imaginary ellipse.
      */
     private fun calculateEllipseXFromY(y: Int): Int {
-        val centerY = height / 2f
+        val yCenter = height / 2f
         val amount =
-            (1 - (y - centerY) * (y - centerY) / (yRadius * yRadius)) * (xRadius * xRadius).toDouble()
-        return if (amount >= 0) (sqrt(amount) + centerX).toInt() else (-sqrt(-amount) + centerX).toInt()
+            (1 - (y - yCenter) * (y - yCenter) / (yRadius * yRadius)) * (xRadius * xRadius).toDouble()
+        return if (amount >= 0) (sqrt(amount) + xCenter).toInt() else (-sqrt(-amount) + xCenter).toInt()
     }
 
     /**
@@ -328,8 +385,8 @@ class CircularLayoutManagerNew : RecyclerView.LayoutManager, ScrollVectorProvide
      * This method adjusts fillStartPosition and firstChildTopOffset to eliminate potential gaps.
      */
     private fun adjustGapsIfProgrammaticallyScrolled(recycler: RecyclerView.Recycler) {
-        if (isFirstChildParametersManuallyUpdated) {
-            if (shouldCenterAfterScrollToPosition) {
+        if (isFirstChildParametersProgrammaticallyUpdated) {
+            if (shouldCenterIfProgrammaticallyScrolled) {
                 // If shouldCenterAfterScrollToPosition is true, readjust fillStartPosition
                 // Also, ensure there is no gap at the top
                 val centerChild = recycler.getViewForPosition(fillStartPosition)
@@ -366,7 +423,7 @@ class CircularLayoutManagerNew : RecyclerView.LayoutManager, ScrollVectorProvide
                 if (bottomGap > 0) clearScrollState()
             }
 
-            isFirstChildParametersManuallyUpdated = false
+            isFirstChildParametersProgrammaticallyUpdated = false
         }
     }
 
@@ -380,6 +437,13 @@ class CircularLayoutManagerNew : RecyclerView.LayoutManager, ScrollVectorProvide
         fillStartPosition = 0
         firstChildTopOffset = 0
     }
+
+    private fun areAttrsForCircleAvailable(a: TypedArray) =
+        a.hasValue(R.styleable.RecyclerView_radius) && a.hasValue(R.styleable.RecyclerView_xCenter)
+
+    private fun areAttrsForEllipseAvailable(a: TypedArray) =
+        a.hasValue(R.styleable.RecyclerView_xRadius) && a.hasValue(R.styleable.RecyclerView_yRadius)
+                && a.hasValue(R.styleable.RecyclerView_xCenter)
 
     private fun logIt(msg: String) = Log.e("BCBCBCBCBC", msg)
 }

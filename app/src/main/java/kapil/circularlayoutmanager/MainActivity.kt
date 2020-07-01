@@ -1,10 +1,8 @@
 package kapil.circularlayoutmanager
 
 import android.os.Bundle
-import android.util.Log
 import android.widget.Toast
 import androidx.appcompat.app.AppCompatActivity
-import com.kapil.circularlayoutmanager.CircularLayoutManagerNew
 import com.kapil.circularlayoutmanager.INVALID_INDEX
 import com.kapil.circularlayoutmanager.getChildAdapterPosition
 import kotlinx.android.synthetic.main.activity_main.*
@@ -24,33 +22,42 @@ class MainActivity : AppCompatActivity() {
         initializeScrollWheel()
 
         addItemButton!!.setOnClickListener { addItemToList() }
-        scrollWheelToggleButton!!.setOnClickListener {
-            recyclerView.adapter = RecyclerViewAdapter().apply {
-                val list = getInitialList().subList(0, 3)
-                Log.e("BCBCBCBCBC", "$list")
-                submitList(list)
-                onItemClickListener = { showMessage(event) }
-            }
-//            recyclerView.smoothScrollToPosition(-1)
-//            recyclerView.scrollToPosition(20)
-//            toggleScrollWheel()
+        scrollWheelToggleButton!!.setOnClickListener { toggleScrollWheel() }
+        smoothScrollTestBtn.setOnClickListener {
+            if (positionInput.text.isNullOrBlank())
+                showMessage("Enter an index")
+            else
+                recyclerView.smoothScrollToPosition(positionInput.text.toString().toInt())
+        }
+        scrollTestBtn.setOnClickListener {
+            if (positionInput.text.isNullOrBlank())
+                showMessage("Enter an index")
+            else
+                recyclerView.scrollToPosition(positionInput.text.toString().toInt())
         }
     }
 
+    /**
+     * The [com.kapil.circularlayoutmanager.CircularLayoutManagerNew] is passed to the recycler view
+     * in the XML layout file. The optional attributes along with constructor parameters are also
+     * declared in the layout file.
+     */
     private fun initializeRecyclerView() {
         recyclerView.adapter = RecyclerViewAdapter().apply {
             submitList(getInitialList())
             onItemClickListener = { showMessage(event) }
         }
         recyclerView.addItemDecoration(RecyclerItemDecoration())
-        recyclerView.layoutManager = CircularLayoutManagerNew(
-            resources.getDimension(R.dimen.circular_list_radius),
-            resources.getDimension(R.dimen.circular_list_center_x)
-        ).apply {
-            scalingFactor = 1f
-            shouldIgnoreHeaderAndFooterMargins = true
-            shouldCenterAfterScrollToPosition = true
-        }
+
+//        recyclerView.layoutManager = CircularLayoutManagerNew(
+//            resources.getDimension(R.dimen.circular_list_radius),
+//            resources.getDimension(R.dimen.circular_list_center_x)
+//        ).apply {
+//            scalingFactor = 1f
+//            shouldIgnoreHeaderAndFooterMargins = true
+//            shouldCenterIfProgrammaticallyScrolled = true
+//        }
+
 //        recyclerView.layoutManager = LinearLayoutManager(this)
     }
 

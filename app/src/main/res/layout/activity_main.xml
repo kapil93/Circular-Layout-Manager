@@ -1,19 +1,54 @@
 <?xml version="1.0" encoding="utf-8"?>
-<androidx.coordinatorlayout.widget.CoordinatorLayout xmlns:android="http://schemas.android.com/apk/res/android"
+<androidx.constraintlayout.widget.ConstraintLayout xmlns:android="http://schemas.android.com/apk/res/android"
     xmlns:app="http://schemas.android.com/apk/res-auto"
     xmlns:tools="http://schemas.android.com/tools"
     android:layout_width="match_parent"
     android:layout_height="match_parent"
     android:background="@color/colorAccent"
-    android:gravity="center"
-    android:orientation="vertical"
     tools:context="kapil.circularlayoutmanager.MainActivity">
+
+    <EditText
+        android:id="@+id/positionInput"
+        android:layout_width="wrap_content"
+        android:layout_height="wrap_content"
+        android:layout_margin="@dimen/margin_s"
+        android:hint="Index"
+        android:imeOptions="flagNoFullscreen"
+        android:inputType="number"
+        android:textColor="@color/light_gray"
+        android:textColorHint="@color/light_gray"
+        app:layout_constraintStart_toStartOf="parent"
+        app:layout_constraintTop_toTopOf="parent"
+        tools:ignore="Autofill,HardcodedText" />
+
+    <Button
+        android:id="@+id/scrollTestBtn"
+        android:layout_width="wrap_content"
+        android:layout_height="wrap_content"
+        android:layout_margin="@dimen/margin_s"
+        android:text="Scroll"
+        app:layout_constraintEnd_toStartOf="@+id/smoothScrollTestBtn"
+        app:layout_constraintTop_toTopOf="parent"
+        tools:ignore="HardcodedText" />
+
+    <Button
+        android:id="@+id/smoothScrollTestBtn"
+        android:layout_width="wrap_content"
+        android:layout_height="wrap_content"
+        android:layout_margin="@dimen/margin_s"
+        android:text="Smooth Scroll"
+        app:layout_constraintEnd_toEndOf="parent"
+        app:layout_constraintTop_toTopOf="parent"
+        tools:ignore="HardcodedText" />
 
     <com.kapil.circularlayoutmanager.CircularConstraintLayout
         android:layout_width="match_parent"
-        android:layout_height="0dp"
-        android:layout_gravity="center"
+        android:layout_height="wrap_content"
         android:background="@drawable/circular_list_bg"
+        app:layout_constraintBottom_toBottomOf="parent"
+        app:layout_constraintEnd_toEndOf="parent"
+        app:layout_constraintStart_toStartOf="parent"
+        app:layout_constraintTop_toTopOf="parent"
         app:primaryDimension="width">
 
         <TextView
@@ -31,10 +66,16 @@
             android:id="@+id/recyclerView"
             android:layout_width="0dp"
             android:layout_height="0dp"
+            app:layoutManager="com.kapil.circularlayoutmanager.CircularLayoutManagerNew"
             app:layout_constraintBottom_toBottomOf="parent"
             app:layout_constraintEnd_toEndOf="parent"
             app:layout_constraintStart_toStartOf="parent"
-            app:layout_constraintTop_toTopOf="parent" />
+            app:layout_constraintTop_toTopOf="parent"
+            app:radius="@dimen/circular_list_radius"
+            app:scalingFactor="1.0"
+            app:shouldCenterIfProgrammaticallyScrolled="true"
+            app:shouldIgnoreHeaderAndFooterMargins="true"
+            app:xCenter="@dimen/circular_list_center_x" />
 
         <com.kapil.circularlayoutmanager.ScrollWheel
             android:id="@+id/scrollWheel"
@@ -64,9 +105,10 @@
         android:id="@+id/scrollWheelToggleButton"
         android:layout_width="wrap_content"
         android:layout_height="wrap_content"
-        android:layout_gravity="bottom|end"
         android:layout_margin="@dimen/margin_l"
         android:src="@android:drawable/toast_frame"
-        app:backgroundTint="@android:color/holo_green_light" />
+        app:backgroundTint="@android:color/holo_green_light"
+        app:layout_constraintBottom_toBottomOf="parent"
+        app:layout_constraintEnd_toEndOf="parent" />
 
-</androidx.coordinatorlayout.widget.CoordinatorLayout>
+</androidx.constraintlayout.widget.ConstraintLayout>
