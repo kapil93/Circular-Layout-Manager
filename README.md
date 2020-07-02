@@ -48,7 +48,7 @@ Use the following dependency snippet in your app level build.gradle file to incl
 dependencies {
     ...
     ...
-    compile 'com.github.kapil93:circular-layout-manager:2.0.0'
+    implementation 'com.github.kapil93:circular-layout-manager:2.0.0'
 }
 ```
 
