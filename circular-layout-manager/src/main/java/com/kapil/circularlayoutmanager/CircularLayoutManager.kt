@@ -51,6 +51,8 @@ open class CircularLayoutManager : RecyclerView.LayoutManager, ScrollVectorProvi
      * Not sure whether holding a reference of [RecyclerView.Recycler] will create any problems.
      *
      * @see stabilize
+     * @see couldChildBeBroughtDownToCenter
+     * @see couldChildBeBroughtUpToCenter
      */
     private lateinit var mRecycler: RecyclerView.Recycler
 
