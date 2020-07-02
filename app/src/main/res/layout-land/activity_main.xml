@@ -82,13 +82,15 @@
             android:id="@+id/scrollWheel"
             android:layout_width="0dp"
             android:layout_height="0dp"
+            android:importantForAccessibility="no"
             app:isHandleClicksEnabled="true"
             app:layout_constraintBottom_toBottomOf="parent"
             app:layout_constraintEnd_toEndOf="parent"
             app:layout_constraintStart_toStartOf="parent"
             app:layout_constraintTop_toTopOf="parent"
             app:touchAreaColor="@color/default_touch_area_color"
-            app:touchAreaThickness="@dimen/default_touch_area_thickness" />
+            app:touchAreaThickness="@dimen/default_touch_area_thickness"
+            tools:targetApi="jelly_bean" />
 
         <com.google.android.material.floatingactionbutton.FloatingActionButton
             android:id="@+id/addItemButton"
@@ -110,10 +112,12 @@
         android:layout_height="wrap_content"
         android:layout_margin="@dimen/margin_l"
         android:contentDescription="Scroll wheel toggle"
+        android:importantForAccessibility="no"
         android:src="@android:drawable/toast_frame"
         app:backgroundTint="@android:color/holo_green_light"
         app:layout_constraintBottom_toBottomOf="parent"
         app:layout_constraintEnd_toEndOf="parent"
-        tools:ignore="HardcodedText" />
+        tools:ignore="HardcodedText"
+        tools:targetApi="jelly_bean" />
 
 </androidx.constraintlayout.widget.ConstraintLayout>

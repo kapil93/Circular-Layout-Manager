@@ -1,6 +1,8 @@
 package kapil.circularlayoutmanager
 
+import android.content.Context
 import android.os.Bundle
+import android.view.accessibility.AccessibilityManager
 import android.widget.Toast
 import androidx.appcompat.app.AppCompatActivity
 import com.kapil.circularlayoutmanager.INVALID_INDEX
@@ -36,6 +38,15 @@ class MainActivity : AppCompatActivity() {
             else
                 recyclerView.scrollToPosition(positionInput.text.toString().toInt())
         }
+
+        val accessibilityManager =
+            getSystemService(Context.ACCESSIBILITY_SERVICE) as AccessibilityManager
+
+        // Turn off auto stabilization feature when accessibility options are enabled to avoid
+        // unnecessary interference with scrolling. For eg. while navigating the list through
+        // TalkBack.
+        if (accessibilityManager.isEnabled)
+            recyclerView.circularLayoutManager!!.isAutoStabilizationEnabled = false
     }
 
     /**

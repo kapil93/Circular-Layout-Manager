@@ -238,6 +238,16 @@ open class CircularLayoutManager : RecyclerView.LayoutManager, ScrollVectorProvi
     override fun computeScrollVectorForPosition(targetPosition: Int) =
         PointF(0f, (targetPosition - fillStartPosition).toFloat())
 
+    // The three methods below are mainly overridden for accessibility. More specifically, to enable
+    // scrolling while using TalkBack.
+    override fun computeVerticalScrollOffset(state: RecyclerView.State) =
+        getPosition(getChildAt(0)!!)
+
+    override fun computeVerticalScrollExtent(state: RecyclerView.State) =
+        getPosition(getChildAt(childCount - 1)!!) - getPosition(getChildAt(0)!!) + 1
+
+    override fun computeVerticalScrollRange(state: RecyclerView.State) = itemCount
+
     override fun onAdapterChanged(
         oldAdapter: RecyclerView.Adapter<*>?,
         newAdapter: RecyclerView.Adapter<*>?
