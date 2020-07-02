@@ -3,6 +3,7 @@ package kapil.circularlayoutmanager
 import android.os.Bundle
 import android.widget.Toast
 import androidx.appcompat.app.AppCompatActivity
+import com.kapil.circularlayoutmanager.CircularLayoutManagerNew
 import com.kapil.circularlayoutmanager.INVALID_INDEX
 import com.kapil.circularlayoutmanager.getChildAdapterPosition
 import kotlinx.android.synthetic.main.activity_main.*
@@ -44,7 +45,7 @@ class MainActivity : AppCompatActivity() {
      */
     private fun initializeRecyclerView() {
         recyclerView.adapter = RecyclerViewAdapter().apply {
-            submitList(getInitialList())
+//            submitList(getInitialList())
             onItemClickListener = { showMessage(event) }
         }
         recyclerView.addItemDecoration(RecyclerItemDecoration())
@@ -76,7 +77,7 @@ class MainActivity : AppCompatActivity() {
         scrollWheel.onScrollListener = { recyclerView.scrollBy(0, it.toInt()) }
         scrollWheel.onFlingListener = { recyclerView.fling(0, it.toInt()) }
         scrollWheel.onTouchReleasedListener = {
-//            (recyclerView!!.layoutManager as CircularLayoutManager).stabilize()
+            (recyclerView!!.layoutManager as CircularLayoutManagerNew).stabilize()
         }
     }
 

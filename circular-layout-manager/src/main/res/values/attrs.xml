@@ -20,8 +20,9 @@
         <attr name="xRadius" format="dimension" />
         <attr name="yRadius" format="dimension" />
         <attr name="xCenter" format="dimension" />
-        <attr name="scalingFactor" format="float"/>
-        <attr name="shouldIgnoreHeaderAndFooterMargins" format="boolean"/>
-        <attr name="shouldCenterIfProgrammaticallyScrolled" format="boolean"/>
+        <attr name="scalingFactor" format="float" />
+        <attr name="shouldIgnoreHeaderAndFooterMargins" format="boolean" />
+        <attr name="shouldCenterIfProgrammaticallyScrolled" format="boolean" />
+        <attr name="isAutoStabilizationEnabled" format="boolean" />
     </declare-styleable>
 </resources>

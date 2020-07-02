@@ -8,6 +8,10 @@ import androidx.recyclerview.widget.RecyclerView.ItemDecoration
 /**
  * Item decorator for recycler view. Adds margin to the outermost children of the list to induce an
  * over scroll effect with drag.
+ *
+ * Setting the top and bottom item offsets for the boundary items (header and footer margins), as
+ * done below, would be helpful in tuning desired effect specially when Auto Stabilization feature
+ * is enabled in [com.kapil.circularlayoutmanager.CircularLayoutManagerNew].
  */
 class RecyclerItemDecoration : ItemDecoration() {
 
