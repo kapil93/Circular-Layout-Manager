@@ -1,3 +1,5 @@
 <resources>
     <string name="app_name">Circular Layout Manager</string>
+
+    <string name="circular_list_title">Timeline</string>
 </resources>

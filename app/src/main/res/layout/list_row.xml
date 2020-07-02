@@ -1,34 +1,46 @@
 <?xml version="1.0" encoding="utf-8"?>
-<RelativeLayout xmlns:android="http://schemas.android.com/apk/res/android"
+<androidx.constraintlayout.widget.ConstraintLayout xmlns:android="http://schemas.android.com/apk/res/android"
+    xmlns:app="http://schemas.android.com/apk/res-auto"
+    xmlns:tools="http://schemas.android.com/tools"
     android:layout_width="wrap_content"
     android:layout_height="wrap_content"
-    android:padding="5dp">
+    android:padding="@dimen/margin_s">
 
     <ImageView
         android:id="@+id/img"
-        android:layout_width="80dp"
-        android:layout_height="80dp"
-        android:layout_marginRight="10dp"
-        android:tint="@color/material_deep_teal_500"
-        android:src="@drawable/circle"/>
+        android:layout_width="@dimen/list_item_bullet_size"
+        android:layout_height="@dimen/list_item_bullet_size"
+        android:src="@drawable/list_item_bullet"
+        android:textColor="@color/gray"
+        app:layout_constraintBottom_toBottomOf="parent"
+        app:layout_constraintStart_toStartOf="parent"
+        app:layout_constraintTop_toTopOf="parent"
+        tools:ignore="ContentDescription" />
 
     <TextView
         android:id="@+id/event"
         android:layout_width="wrap_content"
         android:layout_height="wrap_content"
-        android:layout_alignTop="@+id/img"
-        android:layout_marginTop="5dp"
-        android:layout_toRightOf="@+id/img"
-        android:text="Event"
-        android:textSize="30sp" />
+        android:layout_marginStart="@dimen/margin_s"
+        android:layout_marginLeft="@dimen/margin_s"
+        android:textColor="@color/gray"
+        android:textSize="@dimen/text_l"
+        app:layout_constraintBottom_toTopOf="@+id/timings"
+        app:layout_constraintStart_toEndOf="@+id/img"
+        app:layout_constraintTop_toTopOf="parent"
+        tools:text="Event" />
 
     <TextView
         android:id="@+id/timings"
         android:layout_width="wrap_content"
         android:layout_height="wrap_content"
-        android:layout_below="@+id/event"
-        android:layout_toRightOf="@+id/img"
-        android:text="Timings"
-        android:textSize="20sp" />
+        android:layout_marginStart="@dimen/margin_s"
+        android:layout_marginLeft="@dimen/margin_s"
+        android:textColor="@color/gray"
+        android:textSize="@dimen/text_m"
+        app:layout_constraintBottom_toBottomOf="parent"
+        app:layout_constraintStart_toEndOf="@+id/img"
+        app:layout_constraintTop_toBottomOf="@+id/event"
+        tools:text="Timings" />
 
-</RelativeLayout>
+</androidx.constraintlayout.widget.ConstraintLayout>

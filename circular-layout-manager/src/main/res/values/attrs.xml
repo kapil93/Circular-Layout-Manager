@@ -1,0 +1,28 @@
+<?xml version="1.0" encoding="utf-8"?>
+<resources>
+    <declare-styleable name="CircularConstraintLayout">
+        <attr name="primaryDimension" format="enum">
+            <enum name="width" value="0" />
+            <enum name="height" value="1" />
+            <enum name="none" value="2" />
+        </attr>
+    </declare-styleable>
+
+    <declare-styleable name="ScrollWheel">
+        <attr name="isHighlightTouchAreaEnabled" format="boolean" />
+        <attr name="isHandleClicksEnabled" format="boolean" />
+        <attr name="touchAreaThickness" format="dimension" />
+        <attr name="touchAreaColor" format="color" />
+    </declare-styleable>
+
+    <declare-styleable name="RecyclerView">
+        <attr name="radius" format="dimension" />
+        <attr name="xRadius" format="dimension" />
+        <attr name="yRadius" format="dimension" />
+        <attr name="xCenter" format="dimension" />
+        <attr name="scalingFactor" format="float" />
+        <attr name="shouldIgnoreHeaderAndFooterMargins" format="boolean" />
+        <attr name="shouldCenterIfProgrammaticallyScrolled" format="boolean" />
+        <attr name="isAutoStabilizationEnabled" format="boolean" />
+    </declare-styleable>
+</resources>

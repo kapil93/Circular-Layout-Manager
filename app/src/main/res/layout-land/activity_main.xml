@@ -27,7 +27,7 @@
         android:layout_height="wrap_content"
         android:layout_margin="@dimen/margin_s"
         android:text="Scroll"
-        app:layout_constraintEnd_toStartOf="@+id/smoothScrollTestBtn"
+        app:layout_constraintEnd_toEndOf="parent"
         app:layout_constraintTop_toTopOf="parent"
         tools:ignore="HardcodedText" />
 
@@ -38,18 +38,18 @@
         android:layout_margin="@dimen/margin_s"
         android:text="Smooth Scroll"
         app:layout_constraintEnd_toEndOf="parent"
-        app:layout_constraintTop_toTopOf="parent"
+        app:layout_constraintTop_toBottomOf="@+id/scrollTestBtn"
         tools:ignore="HardcodedText" />
 
     <com.kapil.circularlayoutmanager.CircularConstraintLayout
-        android:layout_width="match_parent"
-        android:layout_height="wrap_content"
+        android:layout_width="wrap_content"
+        android:layout_height="match_parent"
         android:background="@drawable/circular_list_bg"
         app:layout_constraintBottom_toBottomOf="parent"
         app:layout_constraintEnd_toEndOf="parent"
         app:layout_constraintStart_toStartOf="parent"
         app:layout_constraintTop_toTopOf="parent"
-        app:primaryDimension="width">
+        app:primaryDimension="height">
 
         <TextView
             android:layout_width="wrap_content"

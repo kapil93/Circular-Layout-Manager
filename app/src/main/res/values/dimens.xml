@@ -1,0 +1,15 @@
+<?xml version="1.0" encoding="utf-8"?>
+<resources>
+    <dimen name="text_m">18sp</dimen>
+    <dimen name="text_l">24sp</dimen>
+
+    <dimen name="margin_xs">4dp</dimen>
+    <dimen name="margin_s">8dp</dimen>
+    <dimen name="margin_l">16dp</dimen>
+    <dimen name="margin_xxxl">96dp</dimen>
+
+    <dimen name="list_item_bullet_size">80dp</dimen>
+
+    <dimen name="circular_list_radius">200dp</dimen>
+    <dimen name="circular_list_center_x">-100dp</dimen>
+</resources>
